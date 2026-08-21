@@ -26,8 +26,11 @@ public class AccountAuthentication {
     @Column(name = "account_id", nullable = false)
     private UUID accountId;    
 
-    @Column(name = "username")
+    @Column(name = "username", unique = true)
     private String username;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
