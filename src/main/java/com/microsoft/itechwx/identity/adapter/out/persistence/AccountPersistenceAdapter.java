@@ -1,35 +1,79 @@
 package com.microsoft.itechwx.identity.adapter.out.persistence;
 
-import java.util.Optional;
-
 import org.springframework.stereotype.Component;
 
-import com.microsoft.itechwx.identity.application.port.out.AccountIdentityPort;
+import com.microsoft.itechwx.identity.application.exception.DuplicateAccountException;
+import com.microsoft.itechwx.identity.application.port.out.AccountRepository;
+import com.microsoft.itechwx.identity.domain.Account;
 import com.microsoft.itechwx.identity.domain.AccountAuthentication;
 
-//this class implement the ports that the application needs, 
-// and it uses the JPA repository to interact with the database
+import jakarta.persistence.EntityManager;
+
 @Component
-public class AccountPersistenceAdapter implements AccountIdentityPort {
-    private final AccountAuthenticationJpaRepository accountAuthenticationJpaRepository;
+public final class AccountPersistenceAdapter implements AccountRepository {
 
-    public AccountPersistenceAdapter(AccountAuthenticationJpaRepository accountAuthenticationJpaRepository) {
-        this.accountAuthenticationJpaRepository = accountAuthenticationJpaRepository;
+    private static final String INSERT_AUTHENTICATION = """
+        INSERT INTO account_authentications (
+            id,
+            account_id,
+            email,
+            username,
+            password_hash,
+            auth_method,
+            email_verified_at,
+            failed_login_attempts,
+            last_login_at,
+            created_at,
+            updated_at
+        ) VALUES (
+            :id,
+            :accountId,
+            :email,
+            :username,
+            :passwordHash,
+            'EMAIL_PASSWORD',
+            NULL,
+            0,
+            NULL,
+            :createdAt,
+            :updatedAt
+        )
+        ON CONFLICT DO NOTHING
+        """;
+
+    private final AccountJpaRepository accountJpaRepository;
+    private final EntityManager entityManager;
+
+    public AccountPersistenceAdapter(
+        AccountJpaRepository accountJpaRepository,
+        EntityManager entityManager
+    ) {
+        this.accountJpaRepository = accountJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
-    public boolean existsByEmail(String normalizedEmail) {
-        return accountAuthenticationJpaRepository.existsByEmail(normalizedEmail);
+    public Account save(Account account) {
+        accountJpaRepository.saveAndFlush(AccountJpaEntity.from(account));
+        int insertedRows = insertAuthentication(account.authentication());
+        if (insertedRows == 0) {
+            throw new DuplicateAccountException();
+        }
+        if (insertedRows != 1) {
+            throw new IllegalStateException("Unexpected authentication insert row count");
+        }
+        return account;
     }
 
-    @Override
-    public Optional<AccountAuthentication> findByEmail(String email) {
-        return accountAuthenticationJpaRepository.findByEmail(email);
+    private int insertAuthentication(AccountAuthentication authentication) {
+        return entityManager.createNativeQuery(INSERT_AUTHENTICATION)
+            .setParameter("id", authentication.id())
+            .setParameter("accountId", authentication.accountId())
+            .setParameter("email", authentication.normalizedEmail())
+            .setParameter("username", authentication.normalizedUsername())
+            .setParameter("passwordHash", authentication.passwordHash())
+            .setParameter("createdAt", authentication.createdAt())
+            .setParameter("updatedAt", authentication.updatedAt())
+            .executeUpdate();
     }
-
-    @Override
-    public AccountAuthentication save(AccountAuthentication accountAuthentication) {
-        return accountAuthenticationJpaRepository.save(accountAuthentication);
-    }
-
 }

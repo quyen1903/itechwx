@@ -1,16 +1,24 @@
 spring:
   application:
     name: core
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
     url: jdbc:postgresql://localhost:5432/itechwx
     username: postgres
     password: postgres
   jpa:
+    open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         format_sql: false
+itechwx:
+  security:
+    registration-rate-limit:
+      maximum-attempts: 5
+      window: PT1M
 server:
   port: 8081

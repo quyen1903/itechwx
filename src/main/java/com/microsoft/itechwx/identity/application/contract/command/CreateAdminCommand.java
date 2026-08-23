@@ -1,7 +1,12 @@
 package com.microsoft.itechwx.identity.application.contract.command;
 
-public record CreateAdminCommand(    
+public record CreateAdminCommand(
     String email,
     String password,
     String name
-) {}
+) {
+    @Override
+    public String toString() {
+        return "CreateAdminCommand[email=<redacted>, password=<redacted>, name=<redacted>]";
+    }
+}
