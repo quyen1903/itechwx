@@ -6,7 +6,9 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.microsoft.itechwx.identity.domain.AccountAuthentication;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface AccountAuthenticationJpaRepository extends JpaRepository<AccountAuthentication, UUID> {
     Optional <AccountAuthentication> findByEmail(String email);
 

@@ -5,10 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.microsoft.itechwx.identity.application.port.out.AccountIdentityPort;
-import com.microsoft.itechwx.identity.application.port.out.LoadAccountPort;
 import com.microsoft.itechwx.identity.domain.AccountAuthentication;
-
-import lombok.RequiredArgsConstructor;
 
 //this class implement the ports that the application needs, 
 // and it uses the JPA repository to interact with the database

@@ -36,15 +36,16 @@
 ### Preferred backend feature flow
 
 ```text
-HTTP Client
-  -> Controller
-  -> DTO / Schema validation
-  -> Guard / Policy / Permission check
-  -> Application Service / Use Case
-  -> Domain Policy / Calculator / Validator
-  -> Repository Interface
-  -> Repository Implementation
-  -> Database / Redis / Queue / External Adapter
+External actor
+  -> Inbound adapter: HTTP controller / event consumer / scheduler
+  -> Boundary DTO validation and mapping
+  -> Input port
+  -> Application use case: orchestration, authorization, transaction
+  -> Domain aggregate / value object / policy / event
+  -> Output port
+  -> Outbound adapter: JPA / security / messaging / external client
+  -> PostgreSQL / Redis / Kafka / external provider
+  -> Stable result mapped by the inbound adapter
 ```
 
 ### Preferred frontend feature flow
@@ -95,75 +96,141 @@ If a change contradicts a higher-priority source, update the source document in 
 
 ## 3. Repository Shape
 
-Use the existing repository shape first. If implementation code is being added to a new workspace, prefer this structure:
+Use the existing repository shape first. New backend bounded contexts use the
+following Java package structure:
 
 ```text
-apps/
-  api/                    # Main NestJS API or API gateway/service
-  web/
-    admin/                # Platform admin portal, if present
-    shop/                 # Seller/shop portal, if present
-    storefront/           # Buyer-facing storefront, if present
-packages/
-  db/                     # Database schema, migrations, seed data
-  auth/                   # JWT, guards, policies, permission helpers
-  shared/                 # Shared domain types and utilities
-  validators/             # Zod/class-validator schemas shared by API and web
-  ui/                     # Shared UI components, if frontend exists
-  config/                 # ESLint, TS config, build config
-docs/
-  architecture/
-  api/
-  runbooks/
-requirements/
-```
-
-Backend feature folders may use either the current project convention or this pattern:
-
-```text
-features/<feature>/
-  <feature>.module.ts
-  <feature>.controller.ts
-  application/
-    <verb>-<noun>.use-case.ts
-    policies/
+src/main/java/com/microsoft/itechwx/<boundedcontext>/
   domain/
-    <entity>.types.ts
-    <entity>.errors.ts
-    <entity>.policy.ts
-  infrastructure/
-    <feature>.repository.ts
-    <external>.adapter.ts
-  dto/
-    <feature>.schemas.ts
-    <feature>.mapper.ts
-  __tests__/
+    model/                  # Aggregate roots and entities
+    valueobject/            # Immutable domain values
+    policy/                 # Pure domain policies/services
+    event/                  # Domain events
+    exception/              # Domain failures
+  application/
+    port/in/                # Input ports: one user/system intention
+    port/out/               # Required external capabilities
+    command/                # Framework-free commands
+    query/                  # Framework-free queries
+    result/                 # Framework-free results
+    usecase/                # Application orchestration
+  adapter/
+    in/web/                 # Controllers, web DTOs, mappers
+    in/messaging/           # Event consumers
+    in/scheduling/          # Scheduled triggers
+    out/persistence/        # JPA entities/repos/mappers/adapters
+    out/security/           # Password, JWT, random-token adapters
+    out/messaging/          # Outbox/event publishers
+    out/integration/        # External service adapters
+  configuration/           # Spring wiring only
+
+src/main/resources/
+  db/migration/             # Flyway migrations
+
+src/test/java/com/microsoft/itechwx/<boundedcontext>/
+  domain/
+  application/
+  adapter/
 ```
 
 Rules:
 
-- Feature folders use `kebab-case`.
-- TypeScript files use `kebab-case.ts` except React components may use `PascalCase.tsx` if that is the local convention.
-- Keep files focused. Split controllers, widgets, route registries, policies, and test fixtures before they become junk drawers.
-- Avoid dump folders like `utils/`, `helpers/`, or generic `services/`. Name by responsibility: `inventory-reservation`, `checkout-pricing`, `order-payment`, `discount-policy`.
-- Barrel files are allowed only for stable package exports. Do not hide circular dependencies behind barrels.
-- Follow the existing module layout if the repository already has one.
+- Java packages use lowercase names; classes use `PascalCase`.
+- Keep files focused. Avoid dump packages such as `common`, `utils`,
+  `helpers`, or a generic `services` package with unclear ownership.
+- Name use cases by intention, for example `RegisterAccount`,
+  `ReserveInventory`, or `FinalizeOrderPayment`.
+- Bounded contexts must not import another context's domain model or persistence
+  classes. Integrate through input ports, published contracts, or integration
+  events.
+- Shared code is limited to stable technical primitives. Do not move business
+  rules into `shared` merely to resolve a dependency cycle.
+- Package cycles are architecture defects and must not be hidden by Spring
+  wiring.
 
 ---
 
 ## 4. Layer Rules
 
-### Backend TypeScript
+### Backend Java and Hexagonal layers
 
 | Layer | Allowed | Forbidden |
 | --- | --- | --- |
-| Controller | DTO parsing, auth metadata, response mapping | SQL, Redis commands, payment SDK calls, inventory math, ownership shortcuts |
-| Application service/use case | Workflow orchestration, transactions, authorization calls | HTTP response objects, framework decorators in core logic |
-| Domain policy/calculator | Business rules, pure calculations, invariants | NestJS, ORM queries, Redis, external clients |
-| Repository interface | Domain-shaped persistence contract | SQL strings, framework assumptions |
-| Repository implementation | ORM/query builder usage, DB mappings | Request objects, raw user input, frontend DTOs |
-| External adapter | Payment provider, email, SMS, storage, webhook delivery | Business policy decisions |
+| Inbound adapter | DTO validation, authenticated actor extraction, mapping, response status | Business invariants, JPA access, Redis commands, vendor SDK calls |
+| Input port | Stable use-case contract using application/domain types | Spring MVC, HTTP, JPA, vendor types |
+| Application use case | Workflow orchestration, authorization, transactions, ports | HTTP response types, SQL, SDK calls, entity setters that bypass domain behavior |
+| Domain | Aggregates, value objects, invariants, state transitions, pure policies, domain events | Spring, JPA, Jackson, Jakarta Validation, HTTP, Redis, Kafka, external clients |
+| Output port | Small domain-shaped capability contract | Spring Data interfaces, SQL strings, provider DTOs |
+| Persistence adapter | JPA/Spring Data usage and domain/persistence mapping | Raw request DTOs, authorization shortcuts, business-policy decisions |
+| Security/integration adapter | Password encoding, JWT, secure random, provider calls | Account/order/inventory policy decisions |
 | Event consumer | Idempotent async processing | Trusting payloads without validation/scope |
+
+### Dependency rule
+
+Allowed dependency direction:
+
+```text
+adapter/in  ─┐
+configuration├──> application ───> domain
+adapter/out ─┘          │
+                        └──> port/out abstractions
+```
+
+Mandatory rules:
+
+- Domain code is plain Java and compiles without Spring or persistence
+  annotations.
+- Application commands, queries, results, and ports are framework-free.
+- Jakarta Validation annotations belong on inbound DTOs. Domain constructors
+  and factories still enforce business invariants because use cases may be
+  called without HTTP.
+- JPA entities are persistence models in `adapter/out/persistence`; they are
+  not aggregate roots merely because they use `@Entity`.
+- Persistence adapters map between JPA entities and domain aggregates. Do not
+  return a JPA entity through an application port.
+- Spring annotations belong in adapters/configuration. `@Transactional` is
+  permitted on a concrete application use-case implementation as a pragmatic
+  exception because the use case owns the consistency boundary; never put it
+  on domain types.
+- `Clock`, id generation, password hashing, token signing, secure randomness,
+  messaging, and external I/O must be injected through a port when behavior or
+  testing depends on them.
+
+### Aggregates and consistency
+
+- An aggregate root is the only mutation entry point for members of its
+  aggregate.
+- Constructors/factories establish a valid initial state; methods implement
+  named state transitions and reject invalid ones with typed failures.
+- Prefer immutable value objects for identifiers, email, money, quantity,
+  status-specific values, and other concepts with validation or behavior.
+- Repository interfaces operate on aggregate roots or focused projections, not
+  database tables.
+- Prefer one transaction per aggregate. If a use case changes multiple
+  aggregates, document why strong consistency is required or use domain events
+  and compensation.
+- Domain events describe facts that already happened. Integration events are
+  stable external contracts and may be derived from domain events through an
+  outbox after persistence succeeds.
+- Uniqueness spanning all aggregates, such as normalized email uniqueness,
+  requires a database constraint. A repository existence check alone is not
+  race-safe.
+
+### Cross-context workflows
+
+- A bounded context owns its model and tables. Another context may keep only a
+  local reference or projection needed for its own work.
+- Cross-context orchestration belongs in an application workflow, not inside an
+  aggregate.
+- Synchronous modular-monolith collaboration uses the target context's input
+  port. Asynchronous collaboration uses versioned, validated, idempotent
+  integration events.
+- Shop onboarding is not purely an Identity use case: Identity creates the
+  account/credential, while Shop creates the business profile. An onboarding
+  workflow coordinates them without importing the Shop aggregate into
+  Identity.
+- External side effects such as verification email and notification delivery
+  run after commit or through an outbox.
 
 ### Frontend
 
@@ -191,30 +258,29 @@ Do not let one module silently mutate another module's critical state without an
 
 ---
 
-## 5. Backend TypeScript Standards
+## 5. Backend Java And Spring Boot Standards
 
 ### Controller rules
 
 - One controller per resource or bounded route group.
 - Validate all body, params, query, and headers before use.
-- Never inject ORM clients, Redis, payment SDKs, S3/storage, email/SMS clients, or raw HTTP clients into controllers.
+- Use `@Valid` and constrained web DTOs at the HTTP boundary, then map to a
+  framework-free application command.
+- Never inject JPA repositories, `EntityManager`, Redis clients, payment SDKs,
+  storage clients, email/SMS clients, or raw HTTP clients into controllers.
 - Return stable response shapes. Do not leak database records directly.
 - Use authenticated actor context from trusted guards/decorators.
 - Do not trust IDs from the client when they can be derived from auth context.
 
-```typescript
-// Good: controller delegates to an application use case.
-@Post()
-async create(@Body() body: unknown, @CurrentShop() shop: AuthShop) {
-  const input = CreateProductSchema.parse(body);
-
-  const result = await this.createProduct.execute({
-    input,
-    actor: shop,
-    shopId: shop.sub,
-  });
-
-  return ProductResponse.fromDomain(result);
+```java
+@PostMapping
+ResponseEntity<ProductResponse> create(
+        @Valid @RequestBody CreateProductRequest request,
+        @AuthenticationPrincipal AuthenticatedShop actor) {
+    var command = productWebMapper.toCommand(request, actor.shopId());
+    var result = createProductUseCase.handle(command, actor);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(productWebMapper.toResponse(result));
 }
 ```
 
@@ -226,6 +292,10 @@ async create(@Body() body: unknown, @CurrentShop() shop: AuthShop) {
 - Use cases return domain/result objects, not framework response types.
 - Use idempotency keys for payment webhooks, retries, imports, and event consumers.
 - Use explicit actor context: `user`, `shop`, `admin`, or `system`.
+- Do not combine unrelated actions into manager/facade classes with broad
+  mutable APIs.
+- Command-side use cases change state; query-side use cases return focused
+  projections and must still enforce scope.
 
 ### Repository rules
 
@@ -237,20 +307,13 @@ async create(@Body() body: unknown, @CurrentShop() shop: AuthShop) {
 - Use explicit order for paginated lists.
 - Use cursor pagination for high-volume lists where offset becomes expensive.
 
-```typescript
-// Good: shop scope is impossible to forget.
-findProductByIdForShop(params: {
-  shopId: string;
-  productId: string;
-}): Promise<Product | null>;
+```java
+Optional<Product> findByIdForShop(ShopId shopId, ProductId productId);
 
-// Good: user scope is impossible to forget.
-findCartByUser(params: {
-  userId: string;
-}): Promise<Cart | null>;
+Optional<Cart> findByUserId(UserId userId);
 
-// Bad: IDOR waiting to happen.
-findById(id: string): Promise<Product | null>;
+// Bad for scoped data: ownership is impossible to prove.
+Optional<Product> findById(ProductId productId);
 ```
 
 ### Error handling
@@ -280,10 +343,11 @@ Do not:
 
 ### Configuration
 
-- Parse env vars at startup with a typed schema.
+- Bind configuration at startup with validated `@ConfigurationProperties`.
 - Fail fast on missing production secrets.
 - Keep local defaults safe and obviously non-production.
-- Do not read `process.env` throughout business code. Inject typed config.
+- Do not scatter `System.getenv`, `System.getProperty`, or `@Value` throughout
+  business code. Inject typed configuration into adapters/configuration.
 - Configuration names use uppercase snake case.
 - Do not expose configuration values in logs unless they are explicitly safe.
 
@@ -314,22 +378,24 @@ Rules:
 
 Current expected shapes may include:
 
-```typescript
-type JwtUser = {
-  sub: string; // userId
-  role: 'user';
-  email: string;
-  iat: number;
-  exp: number;
-};
+```json
+{
+  "sub": "userId",
+  "role": "user",
+  "email": "user@example.invalid",
+  "iat": 0,
+  "exp": 0
+}
+```
 
-type JwtShop = {
-  sub: string; // shopId
-  role: 'shop';
-  permissions: string[];
-  iat: number;
-  exp: number;
-};
+```json
+{
+  "sub": "shopId",
+  "role": "shop",
+  "permissions": [],
+  "iat": 0,
+  "exp": 0
+}
 ```
 
 Rules:
@@ -337,8 +403,50 @@ Rules:
 - Verify token signature, issuer/audience if configured, expiration, and subject.
 - Do not trust decoded token data without verification.
 - Do not accept client-provided role or permissions outside verified auth context.
-- Refresh tokens must be revocable and stored server-side or tracked by secure token records.
+- Keep authenticated `accountId` distinct from business scope identifiers such
+  as `userId` and `shopId`; do not silently overload them.
+- Refresh tokens must be rotated and revocable. Store only a hash or other
+  non-reversible verifier, never the raw bearer token.
+- Reuse of a rotated refresh token revokes the affected session/token family
+  and creates an audit signal.
 - Passwords must be hashed with an approved password hashing algorithm.
+
+### Identity reference workflow
+
+Register account:
+
+```text
+validated web request
+  -> RegisterAccount input port
+  -> normalize EmailAddress + validate PasswordPolicy
+  -> advisory duplicate lookup
+  -> hash password through PasswordHashPort
+  -> Account.register(...)
+  -> persist account/credential in one transaction
+  -> rely on database uniqueness for race safety
+  -> append AccountRegistered outbox event
+  -> commit
+  -> send verification notification asynchronously
+```
+
+Login and refresh:
+
+```text
+rate limit + normalize identifier
+  -> load account and credential
+  -> return enumeration-resistant credential error when invalid
+  -> verify account state and password
+  -> record success/failure policy
+  -> create or rotate Session
+  -> store refresh-token hash
+  -> issue access and refresh token
+  -> emit safe audit evidence
+```
+
+Identity commands must not contain shop business profile, tax, currency, theme,
+or notification-preference fields. A `RegisterShop` endpoint may accept a
+composite boundary request, but an onboarding application workflow must split
+it into an Identity command and a Shop command.
 
 ### Authorization decision tree
 
@@ -541,7 +649,11 @@ features/<feature>/
 ### Schema rules
 
 - Use the ORM/query layer already used by the current module.
-- Do not mix Prisma, Drizzle, raw SQL, or another ORM inside the same bounded module unless explicitly requested.
+- The current persistence standard is Spring Data JPA/Hibernate. Do not mix
+  JPA, jOOQ, JDBC templates, or ad hoc SQL inside the same bounded context
+  unless the exception is explicitly designed and documented.
+- Keep JPA entities in persistence adapters and map them to domain aggregates
+  or query projections.
 - Use explicit column names that match API/domain naming where practical.
 - Use `shop_id` on shop-owned tables.
 - Use `user_id` on user-private tables.
@@ -594,8 +706,8 @@ Use transactions for:
 ### Request/response naming
 
 - Follow the existing API naming convention first.
-- If no convention exists, prefer `camelCase` for TypeScript-heavy APIs and keep it consistent.
-- IDs are strings, usually UUID/CUID depending on the project convention.
+- If no convention exists, use `camelCase` JSON fields consistently.
+- IDs are strings in JSON and use the project's UUID convention internally.
 - Timestamps are ISO 8601 strings with timezone.
 - Money values must include currency context or be clearly documented as minor units.
 - Pagination responses include `data` and `meta`.
@@ -763,16 +875,22 @@ Track where practical:
 Use this order unless there is a strong reason not to:
 
 1. Read relevant requirements and test cases.
-2. Identify actor type: user, shop, admin, or system.
-3. Define domain types, invariants, and authorization needs.
-4. Add/update validation schemas or DTOs.
-5. Add repository interfaces and data mappings.
-6. Add use case/application service.
-7. Add route/controller/API client.
-8. Add UI or integration if needed.
-9. Add tests at the right levels.
-10. Update docs if architecture, security, libraries, or API contracts changed.
-11. Run lint/typecheck/tests/build where available.
+2. Query Graphify when `graphify-out/graph.json` exists and inspect the current
+   bounded context.
+3. Identify actor type, user/system intention, ownership scope, and consistency
+   boundary.
+4. Define the input port, command/query, result, domain invariants, aggregate
+   boundary, state transitions, and events.
+5. Define small output ports for capabilities the use case needs.
+6. Write domain and application tests for success, invariant failure,
+   authorization denial, and relevant races/retries.
+7. Implement the domain and application use case.
+8. Add persistence/security/integration adapters, mappings, and migrations.
+9. Add inbound DTO validation, mapper, controller/consumer, and contract tests.
+10. Add UI or cross-context integration if needed.
+11. Update `SECURITY.md`, `LIBRARY.md`, API docs, or architecture docs when the
+    source of truth changes.
+12. Run formatting, tests, build, and `graphify update .`.
 
 ---
 
@@ -780,15 +898,18 @@ Use this order unless there is a strong reason not to:
 
 | Do not | Do |
 | --- | --- |
-| `findById(id)` for shop-owned data | `findByIdForShop({ shopId, id })` |
-| `findOrderById(orderId)` for user order history | `findOrderForUser({ userId, orderId })` |
+| `findById(id)` for shop-owned data | `findByIdForShop(shopId, id)` |
+| `findOrderById(orderId)` for user order history | `findOrderForUser(userId, orderId)` |
 | Controller calls payment SDK directly | Use payment use case and provider adapter |
 | Controller updates inventory directly | Use inventory reservation/use case |
 | Client sends final order total | Server recalculates authoritative total |
 | Client sends payment status | Verify provider webhook/server callback |
 | Frontend uses `fetch` in random components | Use typed API client + TanStack Query/project convention |
-| One `common/utils.ts` for everything | Name packages/modules by capability |
+| One `common` or `utils` package for everything | Name packages/modules by capability |
 | Reuse DTOs as domain entities | Map DTOs to domain/application models |
+| Put `@Entity` on domain aggregates | Use persistence entities plus explicit mappers |
+| Identity creates a Shop aggregate directly | Use an onboarding workflow and the Shop input port/event |
+| Store a raw refresh token | Store a token hash and rotate/revoke sessions |
 | Catch and ignore errors | Convert to typed failure or log and rethrow |
 | Use JSON/JSONB for all business data | Model stable fields relationally |
 | Public route by omission | Public route by explicit declaration |
@@ -803,6 +924,11 @@ Use this order unless there is a strong reason not to:
 Before a change is done:
 
 - [ ] Actor type is explicit: user, shop, admin, or system.
+- [ ] The bounded context and aggregate ownership are explicit.
+- [ ] Domain and application contracts do not depend on Spring/JPA/HTTP/vendor
+      types, except the documented transaction annotation exception.
+- [ ] Cross-context changes use input ports or integration events instead of
+      importing another context's aggregate.
 - [ ] Shop scope is explicit where needed.
 - [ ] User scope is explicit where needed.
 - [ ] Inputs are validated.
@@ -818,6 +944,7 @@ Before a change is done:
 - [ ] New dependencies are approved or documented in `LIBRARY.md`.
 - [ ] Security-sensitive behavior is reflected in `SECURITY.md`.
 - [ ] Agent-facing instructions still point to the right files.
+- [ ] Graphify was updated after code or module-structure changes.
 
 ---
 

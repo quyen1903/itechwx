@@ -163,8 +163,9 @@ Requirements:
 - Principal type must be explicit: `user`, `shop`, `admin`, or `system`.
 - Token validation MUST check signature, subject, expiration, token type, and
   configured issuer/audience when present.
-- Refresh tokens MUST be revocable and stored server-side or tracked by secure
-  token records.
+- Refresh tokens MUST be revocable, rotated, and represented server-side by a
+  hash or another non-reversible verifier. Raw bearer refresh tokens MUST NOT
+  be stored.
 - Passwords MUST be hashed with an approved adaptive password hashing algorithm
   and unique salts.
 - Password reset tokens MUST be random, single-use, expiring, and stored hashed
@@ -178,6 +179,64 @@ Requirements:
 
 Never infer admin status from email address, route path, environment, local
 development convenience, or frontend UI state.
+
+### Identity bounded-context controls
+
+The `identity` bounded context owns accounts, login identifiers, credentials,
+email verification, authentication attempts, sessions, tokens, and
+identity/permission primitives. Customer profiles and shop business profiles,
+tax data, currency, theme, and notification preferences belong to their own
+bounded contexts.
+
+Mandatory rules:
+
+- Keep the authenticated actor identity separate from business ownership
+  scope. `accountId`, `userId`, and `shopId` must not be treated as
+  interchangeable identifiers.
+- Define the JWT subject and scope contract explicitly. If a shop token uses
+  `sub = shopId`, retain a separate auditable account identity before allowing
+  multiple staff accounts per shop. Changing this contract requires updating
+  this document and all guards, token issuers, tests, and consumers.
+- Normalize login identifiers before lookup and enforce uniqueness with a
+  database constraint. An application-level existence check is only for a
+  friendly error and does not prevent races.
+- Model account status transitions explicitly. Authentication must deny locked,
+  suspended, deleted, or otherwise ineligible accounts even when the supplied
+  password is correct.
+- Use a maintained adaptive password encoder. When the encoded password already
+  contains algorithm, work factor, and salt metadata, do not persist a second
+  application-managed salt without a documented cryptographic design.
+- Password reset and email verification tokens must be random, single-use,
+  expiring, stored hashed, and invalidated after successful use.
+- Refresh token rotation must revoke the previous token. Reuse of a rotated
+  token must revoke the affected token family or session and create an audit
+  signal.
+- Session termination, password reset, account suspension, and credential
+  compromise must have an explicit revocation path.
+- Login, registration, refresh, verification, password-reset, and recovery
+  endpoints require rate limiting and enumeration-resistant responses.
+- Never include passwords, password hashes, raw verification/reset tokens, raw
+  refresh tokens, or private key material in domain or integration events.
+
+### Hexagonal security boundaries
+
+Hexagonal Architecture does not make an adapter trusted. Every inbound adapter
+and event consumer remains an external boundary and must validate its input.
+
+- Domain objects enforce business invariants but do not parse JWTs, HTTP
+  headers, cookies, queue envelopes, or database records.
+- Inbound adapters authenticate the request and map it to an explicit actor
+  context. Application use cases re-check action and resource scope before
+  sensitive reads or state changes.
+- JPA entities and database rows are persistence representations, not trusted
+  domain input. Persistence adapters must map and validate required fields.
+- Password hashing, token signing, secure random generation, clocks, email,
+  persistence, and messaging are outbound capabilities behind narrow ports.
+- Cross-context workflows such as shop onboarding must use explicit input ports
+  or validated integration events. Identity must not directly mutate another
+  bounded context's aggregate.
+- External side effects must occur after commit, or be recorded atomically with
+  business state through an outbox.
 
 ---
 
@@ -682,7 +741,7 @@ Rules:
 - Third-party SDKs must document network destinations, telemetry, data
   collection, retry behavior, and failure mode when relevant.
 
-Do not add a dependency for a small task that the language runtime, NestJS, or
+Do not add a dependency for a small task that the Java runtime, Spring Boot, or
 the existing stack can safely handle.
 
 ---

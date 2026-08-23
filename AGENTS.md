@@ -8,6 +8,12 @@
 
 You are working on an ecommerce platform.
 
+The backend is a Java 25 Spring Boot modular monolith organized by bounded
+context. Modules follow Hexagonal Architecture and Domain-Driven Design (DDD):
+domain and application policy stay at the center, while web, persistence,
+security, messaging, and external integrations are adapters around explicit
+ports.
+
 This project includes buyer-facing user flows, seller/shop management, product catalog, cart, checkout, order processing, inventory reservation, discounts, notifications, comments/reviews, authentication, and authorization.
 
 Your job is not only to write code or docs. Your job is to preserve the product architecture, shop isolation, security posture, data consistency, and maintainability while making the requested change.
@@ -63,6 +69,19 @@ For notification, chat, or realtime work, also read:
   - `JwtShop`: `sub = shopId`, `role = "shop"`, `permissions`, `iat`, `exp`
 - Full RBAC may be expanded later, but current role and permission checks must not be bypassed.
 - PostgreSQL is the primary database.
+- The backend uses Java 25, Spring Boot, Gradle, Spring Data JPA, Spring
+  Security, Jakarta Validation, Flyway, and PostgreSQL.
+- The architectural style is Hexagonal Architecture with DDD bounded contexts.
+- Dependency direction is inward: adapters depend on application/domain;
+  domain code never depends on Spring, JPA, HTTP, JSON, Redis, Kafka, or an
+  external SDK.
+- `identity` is the first bounded context. It owns accounts, credentials,
+  verification, authentication, sessions, tokens, and identity/permission
+  primitives. It does not own customer business profiles or shop business
+  profiles/settings.
+- Cross-context workflows such as shop onboarding must use an application
+  orchestrator and explicit input ports or integration events. One bounded
+  context must not import and mutate another context's aggregate directly.
 - Redis may be used for cache, distributed locks, rate limits, queues, counters, and temporary state.
 - Kafka may be used for async events such as notifications, activity events, and background workflows.
 - Use the ORM/query layer already used by the current module. Do not mix ORM styles inside the same bounded module unless explicitly requested.
@@ -99,28 +118,33 @@ Terminology:
 ### Default workflow
 
 1. Inspect the current workspace.
-2. Read this file and relevant source-of-truth docs.
-3. Identify the bounded change.
-4. Read the related module files before editing.
-5. Make the smallest complete change.
-6. Preserve existing architecture and naming conventions.
-7. Update docs if the source of truth changes.
-8. Run available verification.
-9. Summarize what changed and what was verified.
+2. Query Graphify first for codebase questions when
+   `graphify-out/graph.json` exists.
+3. Read this file and relevant source-of-truth docs.
+4. Identify the bounded context, actor, use case, aggregate, invariants, and
+   consistency boundary affected by the change.
+5. Read the related module files before editing.
+6. Make the smallest complete vertical slice from input adapter to tests.
+7. Preserve dependency direction, module boundaries, and naming conventions.
+8. Update docs and Graphify if the source of truth or code structure changes.
+9. Run available verification.
+10. Summarize what changed and what was verified.
 
 ### When inspecting a module
 
 Prefer this order:
 
-1. Module definition
-2. Controller
-3. DTO/request validation
-4. Service/use case
-5. Repository/query layer
-6. Database schema/migration
-7. Guards/policies/middleware
-8. Tests
-9. Related docs
+1. Module configuration and package boundary
+2. Inbound adapter such as controller, consumer, or scheduler
+3. Inbound DTO/request validation and mapping
+4. Input port and application use case
+5. Domain aggregate, value objects, policies, invariants, and events
+6. Output ports
+7. Outbound adapters and persistence mappings
+8. Database schema/migration
+9. Guards, authorization policies, and security adapters
+10. Tests
+11. Related docs
 
 ### Do not
 
@@ -164,6 +188,28 @@ When adding a new standards file, include:
 ---
 
 ## 6. Implementation Rules
+
+### Hexagonal DDD and module boundaries
+
+- Model one user or system intention as one input port/use case.
+- Keep domain objects behavior-rich and responsible for their invariants.
+- Keep the domain free of Spring, JPA, Jackson, Jakarta Validation, HTTP,
+  database, messaging, and vendor SDK types.
+- Put JPA entities and Spring Data repositories in outbound persistence
+  adapters. Map between persistence entities and domain aggregates explicitly.
+- Put request/response DTOs and boundary validation in inbound adapters. Do not
+  reuse HTTP DTOs or JPA entities as domain objects.
+- Define outbound needs as small application ports with domain-shaped
+  contracts. Adapters implement those ports.
+- Application use cases orchestrate domain behavior, authorization, output
+  ports, and transaction boundaries; they do not implement domain invariants.
+- Prefer one transaction per aggregate. Coordinate multiple aggregates or
+  bounded contexts explicitly and use outbox/integration events when eventual
+  consistency is intended.
+- Publish external side effects only after commit, or persist them atomically
+  through an outbox.
+- Do not place shop profile, tax, currency, theme, or notification preferences
+  inside the `identity` bounded context.
 
 When implementation code exists:
 
@@ -285,21 +331,35 @@ If this file changes:
 - If new architecture or business rules are added, update the relevant source-of-truth docs instead of stuffing everything into this file.
 ---
 
+## 10. Graphify Knowledge Graph
+
+The project knowledge graph lives in `graphify-out/`. Generated Graphify files
+must not be edited by hand.
+
+When the user types `/graphify`, use the Graphify skill first when it is
+available. If the skill is unavailable, use the local `graphify` CLI directly.
+
+Rules:
+
+- For codebase questions, first run `graphify query "<question>"` when
+  `graphify-out/graph.json` exists.
+- Use `graphify path "<A>" "<B>"` for relationships and
+  `graphify explain "<concept>"` for focused concepts.
+- Use `graphify affected "<concept>"` before broad structural refactors when
+  impact is unclear.
+- If `graphify-out/wiki/index.md` exists, use it for broad navigation before
+  raw source browsing.
+- Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review or
+  when query/path/explain do not surface enough context.
+- After modifying code or module structure, run `graphify update .` to refresh
+  the AST graph without an API call.
+- Dirty `graphify-out/` files are expected after incremental updates and are
+  not a reason to skip Graphify.
+- Skip Graphify only when investigating stale/incorrect graph output, when the
+  graph does not exist yet, or when the user explicitly asks not to use it.
+
 ## Related
 
 - `SECURITY.md`
 - `LIBRARY.md`
 - `CODING_STANDARDS.md`
-
-## graphify
-
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-When the user types `/graphify`, invoke the `skill` tool with `skill: "graphify"` before doing anything else.
-
-Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

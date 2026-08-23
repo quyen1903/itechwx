@@ -30,7 +30,7 @@ public class AccountRegistrar {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        String passwordHash = hashPassword(registerShopCommand.password());
+        String passwordHash = passwordHashPort.hash(registerShopCommand.password());
         
     }
 

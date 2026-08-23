@@ -8,6 +8,4 @@ public record RegisterShopResult(
     String email,
     String status,
     boolean emailVerificationRequired
-) {
-
-}
+) {}
