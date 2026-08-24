@@ -134,7 +134,7 @@ development or examples unless synthetic or formally de-identified.
 Browser / mobile / partner / webhook provider
   -> CDN, WAF, reverse proxy, API gateway
   -> Ecommerce API modules
-  -> PostgreSQL, Redis, Kafka/queue, object storage, audit store
+  -> Oracle Database, Redis, Kafka/queue, object storage, audit store
   -> Secret manager / KMS
   -> External providers: payment, email, SMS, shipping, analytics, search
   -> Operators and admin tools
@@ -626,7 +626,9 @@ Rules:
 Safe placeholders:
 
 ```env
-DATABASE_URL=postgresql://local_user:replace-me@localhost:5432/ecommerce
+ITECHWX_DB_URL=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+ITECHWX_DB_USERNAME=local_user
+ITECHWX_DB_PASSWORD=replace-me-local-only
 JWT_SIGNING_KEY=replace-me-local-only
 STRIPE_SECRET_KEY=sk_test_replace_me
 STRIPE_WEBHOOK_SECRET=whsec_replace_me

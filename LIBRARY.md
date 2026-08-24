@@ -45,15 +45,15 @@ The current baseline is derived from `build.gradle.kts`.
 | Persistence | `spring-boot-starter-data-jpa` | Outbound persistence adapters only |
 | Security | `spring-boot-starter-security` | Security configuration and security adapters |
 | Validation | `spring-boot-starter-validation` | Inbound DTO/configuration validation; not domain modeling |
-| Migration | `spring-boot-starter-flyway` and `flyway-database-postgresql` | Flyway auto-configuration and versioned PostgreSQL schema changes |
-| Database | PostgreSQL JDBC driver | Runtime persistence infrastructure |
+| Migration | `spring-boot-starter-flyway` and `flyway-database-oracle` | Flyway auto-configuration and versioned Oracle schema changes |
+| Database | Oracle JDBC (`ojdbc17`) | Runtime persistence infrastructure for Oracle Database 23ai |
 | Boilerplate generation | Lombok, compile/annotation-processor only | Adapter/configuration boilerplate; restricted in domain |
 | JPA testing | `spring-boot-starter-data-jpa-test` | Persistence adapter/integration tests |
 | HTTP client testing | `spring-boot-starter-restclient-test` | Outbound HTTP adapter tests |
 | Security testing | `spring-boot-starter-security-test` | Authentication/authorization tests |
 | Web testing | `spring-boot-starter-webmvc-test` | Inbound HTTP adapter/contract tests |
 | Test runtime | `junit-platform-launcher` | JUnit Platform test execution |
-| Transaction test database | H2, test runtime only | Fast application-context tests for JPA transaction commit/rollback; PostgreSQL/Flyway behavior still requires PostgreSQL verification |
+| Transaction test database | H2, test runtime only | Fast application-context tests for JPA transaction commit/rollback; Oracle/Flyway behavior still requires Oracle verification |
 | Knowledge graph | Graphify CLI | Local/CI architecture navigation; not an application dependency |
 
 Spring-managed dependency versions should normally omit an explicit version.
@@ -107,7 +107,7 @@ Libraries must remain at the edge of the architecture.
 domain                      plain Java only
 application                 domain/application types + ports
 adapter/in/web              Spring MVC, Jakarta Validation, JSON mapping
-adapter/out/persistence     Spring Data JPA, Hibernate, PostgreSQL mappings
+adapter/out/persistence     Spring Data JPA, Hibernate, Oracle mappings
 adapter/out/security        Spring Security, PasswordEncoder, JWT implementation
 adapter/out/integration     RestClient and provider SDKs
 adapter/out/messaging       Kafka/queue/outbox implementation
@@ -161,8 +161,10 @@ Prefer explicit domain constructors/factories and named behavior methods.
 - Never edit a migration after it has been shared; add a new migration.
 - Add indexes and database constraints required by domain invariants and query
   patterns in the same logical migration.
-- PostgreSQL-specific SQL is allowed in Flyway migrations and intentionally
+- Oracle-specific SQL is allowed in Flyway migrations and intentionally
   named persistence queries, not in the domain.
+- Historical migrations for unsupported database engines belong outside
+  `db/migration/` so Flyway cannot discover two scripts with the same version.
 
 ### Authentication and cryptography
 
@@ -220,7 +222,7 @@ Prefer explicit domain constructors/factories and named behavior methods.
   the Spring platform.
 - Upgrade one logical platform group at a time and review release/migration
   notes before merging.
-- Major Java, Spring Boot, Hibernate, Flyway, PostgreSQL driver, security, or
+- Major Java, Spring Boot, Hibernate, Flyway, Oracle JDBC driver, security, or
   serialization upgrades require integration tests and a rollback/roll-forward
   plan.
 - Do not suppress dependency vulnerabilities without a documented affected
@@ -273,7 +275,8 @@ Approved Gradle placement:
 ```kotlin
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.flywaydb:flyway-database-oracle")
+    runtimeOnly("com.oracle.database.jdbc:ojdbc17")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

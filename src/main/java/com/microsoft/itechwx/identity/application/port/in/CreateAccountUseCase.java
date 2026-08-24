@@ -4,5 +4,5 @@ import com.microsoft.itechwx.identity.application.contract.command.CreateAccount
 import com.microsoft.itechwx.identity.application.contract.result.CreatedAccount;
 
 public interface CreateAccountUseCase {
-    CreatedAccount create(CreateAccountCommand command);
+    CreatedAccount register(CreateAccountCommand command);
 }

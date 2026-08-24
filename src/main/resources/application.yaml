@@ -4,9 +4,9 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
-    url: jdbc:postgresql://localhost:5432/itechwx
-    username: postgres
-    password: postgres
+    url: jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+    username: itechwx
+    password: ItechwxPass123
   jpa:
     open-in-view: false
     hibernate:
