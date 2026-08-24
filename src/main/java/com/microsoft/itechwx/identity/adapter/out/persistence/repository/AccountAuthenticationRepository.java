@@ -11,5 +11,5 @@ public interface AccountAuthenticationRepository extends JpaRepository<AccountAu
     boolean existsByEmail(String email);
 
     Optional<AccountAuthenticationModel> findByEmail(String email);
-
+    
 }

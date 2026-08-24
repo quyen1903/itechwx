@@ -1,16 +1,16 @@
-# Graph Report - itechwx  (2026-08-24)
+# Graph Report - itechwx  (2026-08-25)
 
 ## Corpus Check
-- 57 files · ~21,171 words
+- 64 files · ~22,851 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 518 nodes · 784 edges · 50 communities (48 shown, 2 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 52 edges (avg confidence: 0.8)
+- 535 nodes · 794 edges · 55 communities (53 shown, 2 thin omitted)
+- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 50 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `509aa66d`
+- Built from commit: `1f7ae677`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -36,6 +36,7 @@
 - [[_COMMUNITY_Community 18|Community 18]]
 - [[_COMMUNITY_Community 19|Community 19]]
 - [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
 - [[_COMMUNITY_Community 22|Community 22]]
 - [[_COMMUNITY_Community 24|Community 24]]
 - [[_COMMUNITY_Community 25|Community 25]]
@@ -54,27 +55,29 @@
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
+- [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 51|Community 51]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Ecommerce Security Standard` - 29 edges
-2. `AccountAuthentication` - 18 edges
-3. `Ecommerce Coding Standards` - 18 edges
-4. `Shop` - 17 edges
-5. `ShopSettings` - 17 edges
-6. `Agent Instructions` - 12 edges
-7. `Library And Dependency Standard` - 12 edges
+2. `Ecommerce Coding Standards` - 18 edges
+3. `Shop` - 17 edges
+4. `ShopSettings` - 17 edges
+5. `Agent Instructions` - 12 edges
+6. `Library And Dependency Standard` - 12 edges
+7. `String` - 10 edges
 8. `String` - 10 edges
-9. `String` - 10 edges
-10. `6. Implementation Rules` - 10 edges
+9. `6. Implementation Rules` - 10 edges
+10. `7. Ecommerce Domain Standards` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `RecordingAccountRepository` --implements--> `AccountRepository`  [EXTRACTED]
-  src/test/java/com/microsoft/itechwx/identity/application/service/AccountRegistrarTest.java → src/main/java/com/microsoft/itechwx/identity/application/service/AccountRegistrar.java
+- `ShopRegister` --implements--> `RegisterShopUseCase`  [EXTRACTED]
+  src/main/java/com/microsoft/itechwx/identity/application/service/ShopRegister.java →   _Bridges community 18 → community 7_
 
 ## Import Cycles
 - None detected.
 
-## Communities (50 total, 2 thin omitted)
+## Communities (55 total, 2 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
@@ -93,8 +96,8 @@ Cohesion: 0.08
 Nodes (24): 10. Graphify Knowledge Graph, 1. Mission, 2. Required Reading, 3. Project Facts, 4. How To Work, 5. Documentation Rules, 6. Implementation Rules, 7. Security Rules For Agents (+16 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.10
-Nodes (20): Account, IdentityConfigurationTest, PasswordHashPort, AccountRegistrar, AccountRegistrarTest, RecordingAccountRepository, RecordingPasswordHashPort, AccountRepository (+12 more)
+Cohesion: 0.09
+Nodes (21): Account, AccountRepository, AccountStatus, AccountType, toString(), AccountModel, IdentityConfigurationTest, PasswordHashPort (+13 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.14
@@ -105,8 +108,8 @@ Cohesion: 0.20
 Nodes (10): 7. Ecommerce Domain Standards, Cart, Checkout, Comments, reviews, and messages, Discounts and coupons, Inventory, Inventory reservation, Order (+2 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.22
-Nodes (11): RegisterShopUseCase, RegisterShopService, CreateAccountUseCase, CreateShopCommand, CreateShopUseCase, Override, RegisterShopCommand, RegisterShopResult (+3 more)
+Cohesion: 0.16
+Nodes (14): CreatedAccount, CreateAccountUseCase, RegisterShopUseCase, RegisterShopService, CreateAccountCommand, CreateAccountUseCase, CreateShopCommand, CreateShopUseCase (+6 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.42
@@ -118,7 +121,7 @@ Nodes (7): 4. Layer Rules, Aggregates and consistency, Backend Java and Hexagona
 
 ### Community 10 - "Community 10"
 Cohesion: 0.13
-Nodes (15): ExceptionHandler, IllegalArgumentException, MethodArgumentNotValidException, PostMapping, RegisterShopRequest, RegistrationErrorResponse, RegisterShopResponse, RegisterShopResponse (+7 more)
+Nodes (15): ExceptionHandler, IllegalArgumentException, MethodArgumentNotValidException, RegisterShopRequest, RegistrationErrorResponse, RegisterShopResponse, RegisterShopResponse, ResponseEntity (+7 more)
 
 ### Community 11 - "Community 11"
 Cohesion: 0.33
@@ -141,24 +144,28 @@ Cohesion: 0.60
 Nodes (3): RegisterShopUseCase, RegisterShopCommand, RegisterShopResult
 
 ### Community 17 - "Community 17"
-Cohesion: 0.15
-Nodes (14): CreateAccountUseCase, CreateShopUseCase, CreateShopService, RegisterShopServiceTest, Clock, CreatedShop, CreateShopCommand, Override (+6 more)
+Cohesion: 0.16
+Nodes (13): CreateShopUseCase, CreateShopService, RegisterShopServiceTest, Clock, CreatedShop, CreateShopCommand, Override, Shop (+5 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.16
-Nodes (10): AccountAuthentication, AccountStatus, AccountType, toString(), Account, Override, String, Instant (+2 more)
+Cohesion: 0.22
+Nodes (9): AccountAuthenticationPort, AccountAuthenticationRepository, AccountPort, ShopRegister, Clock, PasswordHashPort, RegisterShopCommand, RegisterShopResult (+1 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.18
-Nodes (5): AuthMethod, AccountAuthentication, Instant, String, UUID
+Cohesion: 0.33
+Nodes (6): AccountModel, AuthMethod, AccountAuthenticationModel, Instant, String, UUID
 
 ### Community 20 - "Community 20"
 Cohesion: 0.16
 Nodes (11): ShopMembership, CreateShopServiceTest, RecordingShopRepository, ShopMembershipStatus, ShopRepository, ShopRole, Instant, UUID (+3 more)
 
+### Community 21 - "Community 21"
+Cohesion: 0.39
+Nodes (5): AccountAuthenticationModel, KeyTokenModel, Instant, String, UUID
+
 ### Community 22 - "Community 22"
-Cohesion: 0.50
-Nodes (3): toString(), Override, String
+Cohesion: 0.46
+Nodes (4): AccountProfile, Instant, String, UUID
 
 ### Community 24 - "Community 24"
 Cohesion: 0.50
@@ -205,8 +212,8 @@ Cohesion: 0.40
 Nodes (5): 6. Auth And Authorization Standards, Authorization decision tree, Identity reference workflow, JWT payloads, Principal types
 
 ### Community 38 - "Community 38"
-Cohesion: 0.60
-Nodes (3): CreateAccountUseCase, CreateAccountCommand, CreatedAccount
+Cohesion: 0.39
+Nodes (5): RequestMapping, CreateAccountUseCase, PostMapping, ResponseEntity, IdentityController
 
 ### Community 39 - "Community 39"
 Cohesion: 0.60
@@ -224,22 +231,30 @@ Nodes (4): 11. Events, Queues, And Realtime Standards, Event rules, Realtime/cha
 Cohesion: 0.50
 Nodes (4): 12. Testing Standards, Must not, Required tests by feature, Test hierarchy
 
+### Community 50 - "Community 50"
+Cohesion: 0.47
+Nodes (4): DeviceSessionModel, Instant, String, UUID
+
+### Community 51 - "Community 51"
+Cohesion: 0.60
+Nodes (3): RegisterShopUseCase, RegisterShopCommand, RegisterShopResult
+
 ## Knowledge Gaps
-- **150 isolated node(s):** `String`, `String`, `Override`, `String`, `Override` (+145 more)
+- **149 isolated node(s):** `String`, `String`, `Override`, `String`, `Override` (+144 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `AccountType` connect `Community 4` to `Community 7`?**
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Why does `ShopStatus` connect `Community 29` to `Community 17`, `Community 20`, `Community 33`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+  _High betweenness centrality (0.042) - this node is a cross-community bridge._
 - **Why does `AtomicReference` connect `Community 31` to `Community 17`?**
-  _High betweenness centrality (0.046) - this node is a cross-community bridge._
-- **Why does `AccountStatus` connect `Community 18` to `Community 17`, `Community 4`?**
-  _High betweenness centrality (0.033) - this node is a cross-community bridge._
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **What connects `String`, `String`, `Override` to the rest of the system?**
-  _150 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _149 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**

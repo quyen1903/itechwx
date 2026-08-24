@@ -1,7 +1,7 @@
 package com.microsoft.itechwx.identity.domain;
 
-import java.math.BigInteger;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -17,28 +17,53 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeviceSessionModel {
+
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
-    
-    @Column(name = "account_id", nullable = false)
+
+    @Column(name = "account_id", nullable = false, updatable = false)
     private UUID accountId;
 
-    @Column(name = "device_id", nullable = false)
+    @Column(name = "device_id", nullable = false, updatable = false)
     private UUID deviceId;
 
     @Column(name = "device_name")
     private String deviceName;
 
-    @Column(name = "last_login_at", nullable = false)
+    @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private boolean active;
 
-    @Column(name = "created_at", nullable = false)
-    private BigInteger createdAt;
-    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
     @Column(name = "updated_at", nullable = false)
-    private BigInteger updatedAt;
+    private Instant updatedAt;
+
+    public DeviceSessionModel(
+        UUID id,
+        UUID accountId,
+        UUID deviceId,
+        String deviceName,
+        Instant lastLoginAt,
+        boolean active,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        this.id = Objects.requireNonNull(id, "id must not be null");
+        this.accountId = Objects.requireNonNull(accountId, "accountId must not be null");
+        this.deviceId = Objects.requireNonNull(deviceId, "deviceId must not be null");
+        this.deviceName = deviceName == null || deviceName.isBlank() ? null : deviceName.strip();
+        this.lastLoginAt = lastLoginAt;
+        this.active = active;
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
+        this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt must not be null");
+
+        if (updatedAt.isBefore(createdAt)) {
+            throw new IllegalArgumentException("updatedAt must not be before createdAt");
+        }
+    }
 }

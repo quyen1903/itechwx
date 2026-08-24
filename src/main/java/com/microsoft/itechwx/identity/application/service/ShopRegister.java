@@ -12,6 +12,7 @@ import com.microsoft.itechwx.identity.application.port.in.RegisterShopUseCase;
 import com.microsoft.itechwx.identity.application.port.out.AccountAuthenticationPort;
 import com.microsoft.itechwx.identity.application.port.out.AccountPort;
 import com.microsoft.itechwx.identity.application.port.out.PasswordHashPort;
+import com.microsoft.itechwx.identity.domain.AccountModel;
 import com.microsoft.itechwx.identity.adapter.out.persistence.repository.AccountAuthenticationRepository;
 import com.microsoft.itechwx.identity.application.contract.command.RegisterShopCommand;
 
@@ -49,12 +50,10 @@ public class ShopRegister implements RegisterShopUseCase {
         String email = normalizeEmail(command.email());
 
         Instant currentTime = clock.instant();
-
         String passwordHash = passwordHashPort.hash(command.password());
 
-        AccountAuthenticationPort accountAuthenticationPort.save();
-
-        )
+        
+        accountAuthenticationPort.save(null);
 
     }
 

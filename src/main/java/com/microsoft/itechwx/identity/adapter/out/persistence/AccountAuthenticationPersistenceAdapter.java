@@ -29,13 +29,6 @@ public class AccountAuthenticationPersistenceAdapter implements AccountAuthentic
 
     @Override
     public Optional<AccountAuthenticationModel> findByEmail(String email) {
-        return repository
-            .findByEmail(email)
-            .map(entity -> new AccountAuthenticationModel(
-                entity.getAccountId(),
-                entity.getEmail(),
-                entity.getPasswordHash(),
-                entity.getCreatedAt()
-            ));
+        return repository.findByEmail(email);
     }
 }
