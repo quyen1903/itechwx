@@ -1,6 +1,6 @@
 package com.microsoft.itechwx.identity.domain;
 
-import java.math.BigInteger;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "key_tokens")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class KeyTokenModel {
+public class KeyToken {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -36,8 +36,29 @@ public class KeyTokenModel {
     private Boolean isActive;
 
     @Column(name = "created_at", nullable = false)
-    private BigInteger createdAt;
+    private Instant createdAt;
     
     @Column(name = "updated_at", nullable = false)
-    private BigInteger updatedAt;
+    private Instant updatedAt;
+
+    public KeyToken(
+        UUID id, 
+        UUID authId, 
+        UUID deviceId, 
+        String publicKey, 
+        String refreshToken, 
+        Boolean isActive,
+        Instant createdAt, 
+        Instant updatedAt
+    ) {
+        this.id = id;
+        this.authId = authId;
+        this.deviceId = deviceId;
+        this.publicKey = publicKey;
+        this.refreshToken = refreshToken;
+        this.isActive = isActive;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+
+    }   
 }

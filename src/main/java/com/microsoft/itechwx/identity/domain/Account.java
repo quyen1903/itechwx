@@ -1,0 +1,70 @@
+package com.microsoft.itechwx.identity.domain;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
+
+import com.microsoft.itechwx.identity.domain.enums.AccountType;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
+
+@Table(name = "accounts")
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Account {
+
+
+    @Id
+    @Column(name = "id", nullable = false)
+    private UUID id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_type", nullable = false, length = 32)
+    private AccountType accountType;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @OneToOne(
+        mappedBy = "account",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private AccountAuthentication accountAuthentication;
+
+    
+    public Account(
+        UUID id, 
+        Boolean status,
+        AccountType accountType,
+        Boolean isActive, 
+        Instant createdAt, 
+        Instant updatedAt
+    ) {
+        this.id = Objects.requireNonNull(id, "id must not be null");
+        this.accountType = accountType;
+        this.isActive = true;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+
+    }
+}

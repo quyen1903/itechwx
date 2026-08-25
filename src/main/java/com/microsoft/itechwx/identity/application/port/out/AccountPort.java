@@ -1,12 +1,11 @@
 package com.microsoft.itechwx.identity.application.port.out;
 
-import com.microsoft.itechwx.identity.domain.AccountAuthenticationModel;
-import com.microsoft.itechwx.identity.domain.AccountModel;
+import com.microsoft.itechwx.identity.domain.Account;
 
 public interface AccountPort {
     
-    AccountModel save(
-        AccountModel account
+    Account save(
+        Account account
     );
 
 }

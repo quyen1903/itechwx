@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.microsoft.itechwx.identity.adapter.out.persistence.repository.AccountAuthenticationRepository;
 import com.microsoft.itechwx.identity.application.port.out.AccountAuthenticationPort;
-import com.microsoft.itechwx.identity.domain.AccountAuthenticationModel;
+import com.microsoft.itechwx.identity.domain.AccountAuthentication;
 
 public class AccountAuthenticationPersistenceAdapter implements AccountAuthenticationPort{
     private final AccountAuthenticationRepository repository;
@@ -21,17 +21,17 @@ public class AccountAuthenticationPersistenceAdapter implements AccountAuthentic
     }
 
     @Override
-    public AccountAuthenticationModel save(
-        AccountAuthenticationModel authentication
+    public AccountAuthentication save(
+        AccountAuthentication authentication
     ) {
     return repository.save(authentication);
     }
 
     @Override
-    public Optional<AccountAuthenticationModel> findByEmail(String email) {
+    public Optional<AccountAuthentication> findByEmail(String email) {
         return repository
             .findByEmail(email)
-            .map(entity -> new AccountAuthenticationModel(
+            .map(entity -> new AccountAuthentication(
                 entity.getAccountId(),
                 entity.getEmail(),
                 entity.getPasswordHash(),

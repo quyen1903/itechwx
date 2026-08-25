@@ -1,6 +1,5 @@
 package com.microsoft.itechwx.identity.domain;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -16,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "device_sessions")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DeviceSessionModel {
+public class DeviceSession {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -37,8 +36,30 @@ public class DeviceSessionModel {
     private Boolean isActive;
 
     @Column(name = "created_at", nullable = false)
-    private BigInteger createdAt;
+    private Instant createdAt;
     
     @Column(name = "updated_at", nullable = false)
-    private BigInteger updatedAt;
+    private Instant updatedAt;
+
+    public DeviceSession(
+        UUID id, 
+        UUID accountId, 
+        UUID deviceId, 
+        String deviceName, 
+        Instant lastLoginAt,
+        Boolean isActive, 
+        Instant createdAt, 
+        Instant updatedAt
+    ) {
+        this.id = id;
+        this.accountId = accountId;
+        this.deviceId = deviceId;
+        this.deviceName = deviceName;
+        this.lastLoginAt = lastLoginAt;
+        this.isActive = isActive;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    
 }

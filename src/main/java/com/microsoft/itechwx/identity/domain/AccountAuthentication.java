@@ -1,6 +1,8 @@
 package com.microsoft.itechwx.identity.domain;
 
 import java.math.BigInteger;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import com.microsoft.itechwx.identity.domain.enums.AuthMethod;
@@ -10,6 +12,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,13 +23,18 @@ import lombok.NoArgsConstructor;
 @Table(name = "account_authentications")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AccountAuthenticationModel {
+public class AccountAuthentication {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "account_id", nullable = false)
-    private UUID accountId;    
+    @OneToOne(optional = false)
+    @JoinColumn(
+        name = "account_id", 
+        nullable = false, 
+        unique = true
+    )
+    private Account account; 
 
     @Column(name = "username", unique = true)
     private String username;
@@ -36,15 +45,9 @@ public class AccountAuthenticationModel {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "password_salt", nullable = false)
-    private String passwordSalt;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_method", nullable = false)
     private AuthMethod authMethod = AuthMethod.EMAIL_PASSWORD;
-
-    @Column(name = "is_verified", nullable = false)
-    private boolean isVerified;
 
     @Column(name = "last_login_at")
     private BigInteger lastLoginAt;
@@ -56,20 +59,33 @@ public class AccountAuthenticationModel {
     private Boolean isActive;
 
     @Column(name = "created_at", nullable = false)
-    private BigInteger createdAt;
+    private Instant createdAt;
     
     @Column(name = "updated_at", nullable = false)
-    private BigInteger updatedAt;
+    private Instant updatedAt;
 
-    public AccountAuthenticationModel(
-        UUID accountId,
+    public AccountAuthentication(
+        UUID id,
+        Account account,
+        String username,
         String email,
         String passwordHash,
-        BigInteger createdAt
+        AuthMethod authMethod,
+        Instant now
     ) {
-        this.accountId = accountId;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.createdAt = createdAt;
+        this.id = Objects.requireNonNull(id);
+        this.account = Objects.requireNonNull(account);
+        this.username = username;
+        this.email = Objects.requireNonNull(email);
+        this.passwordHash = Objects.requireNonNull(passwordHash);
+        this.authMethod = Objects.requireNonNull(authMethod);
+
+        this.lastLoginAt = null;
+        this.loginAttempts = 0;
+        this.isActive = true;
+        this.createdAt = Objects.requireNonNull(now);
+        this.updatedAt = now;
     }
+
+
 }

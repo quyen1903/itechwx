@@ -4,12 +4,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.microsoft.itechwx.identity.domain.AccountAuthenticationModel;
+import com.microsoft.itechwx.identity.domain.AccountAuthentication;
 
 
-public interface AccountAuthenticationRepository extends JpaRepository<AccountAuthenticationModel, UUID> {
+public interface AccountAuthenticationRepository extends JpaRepository<AccountAuthentication, UUID> {
     boolean existsByEmail(String email);
 
-    Optional<AccountAuthenticationModel> findByEmail(String email);
+    Optional<AccountAuthentication> findByEmail(String email);
 
 }
