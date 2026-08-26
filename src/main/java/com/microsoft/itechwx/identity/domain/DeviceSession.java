@@ -1,11 +1,19 @@
 package com.microsoft.itechwx.identity.domain;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,9 +27,22 @@ public class DeviceSession {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
-    
-    @Column(name = "account_id", nullable = false)
-    private UUID accountId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+        name = "account_authentication_id",
+        nullable = false
+    )
+    private AccountAuthentication accountAuthentication;
+
+    @OneToMany(        
+        mappedBy = "deviceSession",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<KeyToken> keyTokens = new ArrayList<>();
+
 
     @Column(name = "device_id", nullable = false)
     private UUID deviceId;
@@ -37,29 +58,35 @@ public class DeviceSession {
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-    
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public DeviceSession(
-        UUID id, 
-        UUID accountId, 
-        UUID deviceId, 
-        String deviceName, 
-        Instant lastLoginAt,
-        Boolean isActive, 
-        Instant createdAt, 
-        Instant updatedAt
-    ) {
-        this.id = id;
-        this.accountId = accountId;
-        this.deviceId = deviceId;
-        this.deviceName = deviceName;
-        this.lastLoginAt = lastLoginAt;
-        this.isActive = isActive;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+    public void addKeyToken(KeyToken token) {
+        this.keyTokens.add( Objects.requireNonNull(token) );
     }
 
-    
+    public static DeviceSession create(
+        UUID id,
+        AccountAuthentication authentication,
+        UUID deviceId,
+        String deviceName,
+        Instant now
+    ) {
+        DeviceSession session = new DeviceSession();
+
+        session.id = Objects.requireNonNull(id);
+        session.accountAuthentication =
+            Objects.requireNonNull(authentication);
+        session.deviceId = Objects.requireNonNull(deviceId);
+
+        session.deviceName = deviceName; // optional
+
+        session.lastLoginAt = Objects.requireNonNull(now);
+        session.isActive = true;
+        session.createdAt = now;
+        session.updatedAt = now;
+
+        return session;
+    }
 }

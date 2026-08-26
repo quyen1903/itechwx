@@ -6,7 +6,11 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,6 +24,11 @@ public class AccountProfile {
     @Id
     @Column(name = "account_id", nullable = false)
     private UUID id;
+
+    @MapsId
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -48,27 +57,35 @@ public class AccountProfile {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public AccountProfile(
-        UUID id, 
-        String name, 
-        String avatar, 
-        String phone, 
-        String address, 
-        String timezone,
-        String language, 
-        Boolean isActive, 
-        Instant createdAt, 
-        Instant updatedAt
+    private AccountProfile(
+        Account account,
+        String name,
+        Instant now
     ) {
-        this.id = Objects.requireNonNull(id);
+        this.account = Objects.requireNonNull(account);
         this.name = Objects.requireNonNull(name);
-        this.avatar = avatar;
-        this.phone = phone;
-        this.address = address;
-        this.timezone = timezone;
-        this.language = language;
-        this.isActive = isActive;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+
+        this.avatar = null;
+        this.phone = null;
+        this.address = null;
+        this.timezone = null;
+        this.language = null;
+
+        this.isActive = true;
+
+        this.createdAt = Objects.requireNonNull(now);
+        this.updatedAt = now;
+    }
+
+    public static AccountProfile register(
+        Account account,
+        String name,
+        Instant now
+    ) {
+        return new AccountProfile(
+            account,
+            name,
+            now
+        );
     }
 }

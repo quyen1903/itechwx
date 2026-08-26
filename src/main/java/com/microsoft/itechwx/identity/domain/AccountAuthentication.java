@@ -1,18 +1,22 @@
 package com.microsoft.itechwx.identity.domain;
 
-import java.math.BigInteger;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.microsoft.itechwx.identity.domain.enums.AuthMethod;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -50,7 +54,7 @@ public class AccountAuthentication {
     private AuthMethod authMethod = AuthMethod.EMAIL_PASSWORD;
 
     @Column(name = "last_login_at")
-    private BigInteger lastLoginAt;
+    private Instant  lastLoginAt;
 
     @Column(name = "login_attempts", nullable = false)
     private Integer loginAttempts;
@@ -64,7 +68,15 @@ public class AccountAuthentication {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public AccountAuthentication(
+    @OneToMany(        
+        mappedBy = "accountAuthentication",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<DeviceSession> deviceSessions = new ArrayList<>();
+
+    private AccountAuthentication(
         UUID id,
         Account account,
         String username,
@@ -87,5 +99,19 @@ public class AccountAuthentication {
         this.updatedAt = now;
     }
 
+    public static AccountAuthentication register(
+        UUID id,
+        Account account,
+        String username,
+        String email,
+        String passwordHash,
+        Instant now
+    ){
+        return new AccountAuthentication(id, account, username, email, passwordHash, AuthMethod.EMAIL_PASSWORD,now);
+    }
+
+    public void addDeviceSession(DeviceSession session) {
+        this.deviceSessions.add( Objects.requireNonNull(session) );
+    }
 
 }

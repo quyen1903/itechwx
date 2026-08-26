@@ -24,8 +24,6 @@ import lombok.AccessLevel;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account {
-
-
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -51,20 +49,41 @@ public class Account {
     )
     private AccountAuthentication accountAuthentication;
 
+    @OneToOne(        
+        mappedBy = "account",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private AccountProfile accountProfile;
     
-    public Account(
+    private Account(
         UUID id, 
-        Boolean status,
         AccountType accountType,
-        Boolean isActive, 
-        Instant createdAt, 
-        Instant updatedAt
+        Instant now
     ) {
         this.id = Objects.requireNonNull(id, "id must not be null");
-        this.accountType = accountType;
+        this.accountType = Objects.requireNonNull(accountType);
         this.isActive = true;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+        this.createdAt = Objects.requireNonNull(now);
+        this.updatedAt = now;
 
     }
+
+    public static Account registerShop(
+        UUID id,
+        Instant now
+    ){
+        return new Account(id, AccountType.SHOP, now);
+    }
+
+    public void attachAuthentication( AccountAuthentication authentication ) {
+        this.accountAuthentication = Objects.requireNonNull(authentication);
+    }
+
+    public void attachProfile(AccountProfile profile){
+        this.accountProfile = Objects.requireNonNull(profile);
+    }
+
+
 }

@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,16 @@ import com.microsoft.itechwx.identity.application.port.in.RegisterShopUseCase;
 import com.microsoft.itechwx.identity.application.port.out.AccountAuthenticationPort;
 import com.microsoft.itechwx.identity.application.port.out.AccountPort;
 import com.microsoft.itechwx.identity.application.port.out.PasswordHashPort;
-import com.microsoft.itechwx.identity.adapter.out.persistence.repository.AccountAuthenticationRepository;
+import com.microsoft.itechwx.identity.application.port.out.TokenIssuerPort;
+import com.microsoft.itechwx.identity.application.port.out.TokenPair;
+import com.microsoft.itechwx.identity.domain.Account;
+import com.microsoft.itechwx.identity.domain.AccountAuthentication;
+import com.microsoft.itechwx.identity.domain.AccountProfile;
+import com.microsoft.itechwx.identity.domain.DeviceSession;
+import com.microsoft.itechwx.identity.domain.KeyToken;
+
+import jakarta.transaction.Transactional;
+
 import com.microsoft.itechwx.identity.application.contract.command.RegisterShopCommand;
 
 @Service
@@ -22,39 +32,88 @@ public class ShopRegister implements RegisterShopUseCase {
     private static final int MAXIMUM_PASSWORD_BYTES = 72;
 
     private final AccountPort accountPort;
-    private final AccountAuthenticationRepository accountAuthenticationRepository;
     private final AccountAuthenticationPort accountAuthenticationPort;
     private final PasswordHashPort passwordHashPort;
     private final Clock clock;
+    private final TokenIssuerPort tokenIssuerPort;
 
     public ShopRegister(
         AccountPort accountPort,
-        AccountAuthenticationRepository accountAuthenticationRepository,
         AccountAuthenticationPort accountAuthenticationPort,
         PasswordHashPort passwordHashPort,
-        Clock clock
+        Clock clock,
+        TokenIssuerPort tokenIssuerPort
     ) {
         this.accountPort = accountPort;
-        this.accountAuthenticationRepository = accountAuthenticationRepository;
         this.accountAuthenticationPort = accountAuthenticationPort;
         this.passwordHashPort = passwordHashPort;
         this.clock = clock;
+        this.tokenIssuerPort = tokenIssuerPort;
     }
 
+    @Transactional
     public RegisterShopResult registerShop(RegisterShopCommand command){
-        if(accountAuthenticationRepository.existsByEmail(command.email())){
+        String email = normalizeEmail(command.email());
+
+        if(accountAuthenticationPort.existsByEmail(command.email())){
             throw new IllegalArgumentException("Email already existed");
         }
 
-        String email = normalizeEmail(command.email());
-
-        Instant currentTime = clock.instant();
-
         String passwordHash = passwordHashPort.hash(command.password());
+        Instant now = clock.instant();
 
-        AccountAuthenticationPort accountAuthenticationPort.save();
+        //1 create account record
+        Account account = Account.registerShop(
+            UUID.randomUUID(), 
+            now
+        );
 
-        )
+        //2 create authentication record
+        AccountAuthentication accountAuthentication = AccountAuthentication.register(
+            UUID.randomUUID(), 
+            account, 
+            command.username(), 
+            command.email(), 
+            passwordHash, 
+            now
+        );
+
+        account.attachAuthentication(accountAuthentication);
+
+        //3 create profile record 
+        AccountProfile accountProfile = AccountProfile.register(account, command.name(), now);
+        account.attachProfile(accountProfile);
+
+        accountPort.save(account);
+
+        //4 device session
+        DeviceSession session = DeviceSession.create(
+            UUID.randomUUID(), 
+            accountAuthentication, 
+            UUID.randomUUID(),
+            "macbook M5 promax", 
+            now
+        );
+
+        accountAuthentication.addDeviceSession(session);
+
+        TokenPair tokenPair = tokenIssuerPort.issuePair(
+            account.getId(),
+            session.getId(),
+            email, 
+            now
+        );
+        String refreshtokenHash = tokenIssuerPort.hashRefreshToken(tokenPair.refreshToken());
+
+        //5 keyToken
+        KeyToken token =  KeyToken.create(
+            UUID.randomUUID(), 
+            session, 
+            publicKey, 
+            refreshtokenHash, 
+            now
+        );
+        session.addKeyToken(token);
 
     }
 
