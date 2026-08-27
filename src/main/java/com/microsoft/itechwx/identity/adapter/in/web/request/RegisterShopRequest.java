@@ -22,6 +22,7 @@ public record RegisterShopRequest(
     String timezone,
     String language,
 
+    @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     String email,
 

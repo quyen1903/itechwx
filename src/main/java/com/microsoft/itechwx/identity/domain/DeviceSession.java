@@ -35,13 +35,13 @@ public class DeviceSession {
     )
     private AccountAuthentication accountAuthentication;
 
-    @OneToMany(        
+    @OneToMany(
         mappedBy = "deviceSession",
         cascade = CascadeType.ALL,
         orphanRemoval = true,
         fetch = FetchType.LAZY
     )
-    private List<KeyToken> keyTokens = new ArrayList<>();
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
 
 
     @Column(name = "device_id", nullable = false)
@@ -62,10 +62,9 @@ public class DeviceSession {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public void addKeyToken(KeyToken token) {
-        this.keyTokens.add( Objects.requireNonNull(token) );
+    public void addRefreshToken( RefreshToken token) {
+        refreshTokens.add( Objects.requireNonNull(token));
     }
-
     public static DeviceSession create(
         UUID id,
         AccountAuthentication authentication,
@@ -74,14 +73,10 @@ public class DeviceSession {
         Instant now
     ) {
         DeviceSession session = new DeviceSession();
-
         session.id = Objects.requireNonNull(id);
-        session.accountAuthentication =
-            Objects.requireNonNull(authentication);
+        session.accountAuthentication = Objects.requireNonNull(authentication);
         session.deviceId = Objects.requireNonNull(deviceId);
-
         session.deviceName = deviceName; // optional
-
         session.lastLoginAt = Objects.requireNonNull(now);
         session.isActive = true;
         session.createdAt = now;

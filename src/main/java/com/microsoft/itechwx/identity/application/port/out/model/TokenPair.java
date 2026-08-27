@@ -1,4 +1,4 @@
-package com.microsoft.itechwx.identity.application.port.out;
+package com.microsoft.itechwx.identity.application.port.out.model;
 
 import java.time.Instant;
 

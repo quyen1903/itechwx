@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AccountProfileJpaRepository extends JpaRepository<AccountProfileJpaRepository, UUID>{
+import com.microsoft.itechwx.identity.domain.AccountProfile;
+
+public interface AccountProfileJpaRepository extends JpaRepository<AccountProfile, UUID>{
 
 }

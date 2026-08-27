@@ -13,13 +13,14 @@ import com.microsoft.itechwx.identity.application.port.in.RegisterShopUseCase;
 import com.microsoft.itechwx.identity.application.port.out.AccountAuthenticationPort;
 import com.microsoft.itechwx.identity.application.port.out.AccountPort;
 import com.microsoft.itechwx.identity.application.port.out.PasswordHashPort;
+import com.microsoft.itechwx.identity.application.port.out.RefreshTokenHashPort;
 import com.microsoft.itechwx.identity.application.port.out.TokenIssuerPort;
-import com.microsoft.itechwx.identity.application.port.out.TokenPair;
+import com.microsoft.itechwx.identity.application.port.out.model.TokenPair;
 import com.microsoft.itechwx.identity.domain.Account;
 import com.microsoft.itechwx.identity.domain.AccountAuthentication;
 import com.microsoft.itechwx.identity.domain.AccountProfile;
 import com.microsoft.itechwx.identity.domain.DeviceSession;
-import com.microsoft.itechwx.identity.domain.KeyToken;
+import com.microsoft.itechwx.identity.domain.RefreshToken;
 
 import jakarta.transaction.Transactional;
 
@@ -36,116 +37,110 @@ public class ShopRegister implements RegisterShopUseCase {
     private final PasswordHashPort passwordHashPort;
     private final Clock clock;
     private final TokenIssuerPort tokenIssuerPort;
+    private final RefreshTokenHashPort refreshTokenHashPort;
 
     public ShopRegister(
         AccountPort accountPort,
         AccountAuthenticationPort accountAuthenticationPort,
         PasswordHashPort passwordHashPort,
         Clock clock,
-        TokenIssuerPort tokenIssuerPort
+        TokenIssuerPort tokenIssuerPort,
+        RefreshTokenHashPort refreshTokenHashPort
     ) {
         this.accountPort = accountPort;
         this.accountAuthenticationPort = accountAuthenticationPort;
         this.passwordHashPort = passwordHashPort;
         this.clock = clock;
         this.tokenIssuerPort = tokenIssuerPort;
+        this.refreshTokenHashPort = refreshTokenHashPort;
     }
 
     @Transactional
-    public RegisterShopResult registerShop(RegisterShopCommand command){
+    public RegisterShopResult registerShop(
+        RegisterShopCommand command
+    ) {
+
         String email = normalizeEmail(command.email());
 
-        if(accountAuthenticationPort.existsByEmail(command.email())){
-            throw new IllegalArgumentException("Email already existed");
-        }
+        if (accountAuthenticationPort.existsByEmail(email)) throw new IllegalArgumentException( "Email already existed");
 
-        String passwordHash = passwordHashPort.hash(command.password());
         Instant now = clock.instant();
+        String passwordHash = passwordHashPort.hash(command.password());
 
-        //1 create account record
-        Account account = Account.registerShop(
-            UUID.randomUUID(), 
-            now
-        );
 
-        //2 create authentication record
-        AccountAuthentication accountAuthentication = AccountAuthentication.register(
-            UUID.randomUUID(), 
-            account, 
-            command.username(), 
-            command.email(), 
-            passwordHash, 
-            now
-        );
+        // 1. Account
+        Account account = Account.registerShop( UUID.randomUUID(),now);
 
-        account.attachAuthentication(accountAuthentication);
 
-        //3 create profile record 
-        AccountProfile accountProfile = AccountProfile.register(account, command.name(), now);
-        account.attachProfile(accountProfile);
-
-        accountPort.save(account);
-
-        //4 device session
-        DeviceSession session = DeviceSession.create(
-            UUID.randomUUID(), 
-            accountAuthentication, 
+        // 2. Authentication
+        AccountAuthentication authentication = AccountAuthentication.register(
             UUID.randomUUID(),
-            "macbook M5 promax", 
+            account,
+            command.username(),
+            email,
+            passwordHash,
             now
         );
 
-        accountAuthentication.addDeviceSession(session);
+        account.attachAuthentication( authentication );
 
-        TokenPair tokenPair = tokenIssuerPort.issuePair(
+
+        // 3. Profile
+        AccountProfile profile = AccountProfile.register(
+            account,
+            command.name(),
+            now
+        );
+
+        account.attachProfile(profile);
+
+
+        // 4. Device session
+        DeviceSession session = DeviceSession.create(
+            UUID.randomUUID(),
+            authentication,
+            UUID.randomUUID(),
+            "macbook M5 promax",
+            now
+        );
+
+        authentication.addDeviceSession( session );
+
+
+        // 5. Issue token pair
+        TokenPair pair = tokenIssuerPort.issuePair(
             account.getId(),
             session.getId(),
-            email, 
+            email,
             now
         );
-        String refreshtokenHash = tokenIssuerPort.hashRefreshToken(tokenPair.refreshToken());
 
-        //5 keyToken
-        KeyToken token =  KeyToken.create(
-            UUID.randomUUID(), 
-            session, 
-            publicKey, 
-            refreshtokenHash, 
+
+        // 6. Hash refresh token
+        String refreshHash = refreshTokenHashPort.hash( pair.refreshToken());
+
+        // 7. Save refresh credential
+        RefreshToken refreshToken =RefreshToken.create(
+            UUID.randomUUID(),
+            session,
+            refreshHash,
+            pair.refreshTokenExpiresAt(),
             now
         );
-        session.addKeyToken(token);
 
-    }
+        session.addRefreshToken( refreshToken );
 
-    // @Override
-    // @Transactional
-    // public CreatedAccount create(CreateAccountCommand command) {
-    //     Objects.requireNonNull(command, "command must not be null");
+        // 8. Cascade persist whole graph
+        accountPort.save(account);
 
-    //     String normalizedEmail = normalizeRequired(command.email(), "email").toLowerCase(Locale.ROOT);
-    //     String normalizedUsername = normalizeOptional(command.username());
-    //     validatePassword(command.rawPassword());
-    //     Objects.requireNonNull(command.accountType(), "accountType must not be null");
 
-    //     String passwordHash = passwordHashPort.hash(command.rawPassword());
-    //     if (passwordHash == null || passwordHash.isBlank()) {
-    //         throw new IllegalStateException("Password hashing did not produce a value");
-    //     }
-
-    //     Instant now = clock.instant();
-    //     AccountModel account = AccountModel.register(
-    //         UUID.randomUUID(),
-    //         command.accountType(),
-    //         UUID.randomUUID(),
-    //         normalizedEmail,
-    //         normalizedUsername,
-    //         passwordHash,
-    //         now
-    //     );
-
-    //     AccountModel saved = accountRepository.save(account);
-    //     return new CreatedAccount(saved.id(), saved.authentication().normalizedEmail(), saved.status());
-    // }
+        // 9. Return raw credentials
+        return new RegisterShopResult(
+            account.getId(),
+            pair.accessToken(),
+            pair.refreshToken()
+        );
+    };
 
     private static String normalizeEmail(String email) {
         if(email == null || email.trim().isEmpty()) {
@@ -153,7 +148,6 @@ public class ShopRegister implements RegisterShopUseCase {
         }
         return email.trim().toLowerCase();
     }
-
 
     private static String normalizeRequired(String value, String field) {
         if (value == null || value.isBlank()) {

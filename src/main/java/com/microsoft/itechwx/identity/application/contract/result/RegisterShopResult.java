@@ -3,7 +3,7 @@ package com.microsoft.itechwx.identity.application.contract.result;
 import java.util.UUID;
 
 public record RegisterShopResult(
-    UUID shopId,
+    UUID accountId,
     String accessToken,
     String refreshToken
 ) {}
