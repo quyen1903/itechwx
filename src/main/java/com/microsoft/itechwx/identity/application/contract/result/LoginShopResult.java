@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import com.microsoft.itechwx.identity.domain.enums.AccountStatus;
 
-public record CreatedAccount(
+public record LoginShopResult(
     UUID accountId,
     String normalizedEmail,
     AccountStatus status

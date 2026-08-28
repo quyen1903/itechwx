@@ -1,9 +1,10 @@
 package com.microsoft.itechwx.identity.application.service;
 
-import java.nio.charset.StandardCharsets;
+// import static com.microsoft.itechwx.identity.application.service.AbstractShop.normalizeEmail;
+// import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Locale;
+// import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -27,10 +28,7 @@ import jakarta.transaction.Transactional;
 import com.microsoft.itechwx.identity.application.contract.command.RegisterShopCommand;
 
 @Service
-public class ShopRegister implements RegisterShopUseCase {
-
-    private static final int MINIMUM_PASSWORD_LENGTH = 12;
-    private static final int MAXIMUM_PASSWORD_BYTES = 72;
+public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
 
     private final AccountPort accountPort;
     private final AccountAuthenticationPort accountAuthenticationPort;
@@ -61,7 +59,6 @@ public class ShopRegister implements RegisterShopUseCase {
     ) {
 
         String email = normalizeEmail(command.email());
-
         if (accountAuthenticationPort.existsByEmail(email)) throw new IllegalArgumentException( "Email already existed");
 
         Instant now = clock.instant();
@@ -142,37 +139,4 @@ public class ShopRegister implements RegisterShopUseCase {
         );
     };
 
-    private static String normalizeEmail(String email) {
-        if(email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be null or empty");
-        }
-        return email.trim().toLowerCase();
-    }
-
-    private static String normalizeRequired(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " must not be blank");
-        }
-        return value.strip();
-    }
-
-    private static String normalizeOptional(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.strip().toLowerCase(Locale.ROOT);
-    }
-
-    private static void validatePassword(String rawPassword) {
-        if (rawPassword == null || rawPassword.length() < MINIMUM_PASSWORD_LENGTH) {
-            throw new IllegalArgumentException(
-                "Password must contain at least " + MINIMUM_PASSWORD_LENGTH + " characters"
-            );
-        }
-        if (rawPassword.getBytes(StandardCharsets.UTF_8).length > MAXIMUM_PASSWORD_BYTES) {
-            throw new IllegalArgumentException(
-                "Password must not exceed " + MAXIMUM_PASSWORD_BYTES + " UTF-8 bytes"
-            );
-        }
-    }
 }

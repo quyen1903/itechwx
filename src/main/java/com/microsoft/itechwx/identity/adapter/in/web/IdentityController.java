@@ -43,7 +43,7 @@ public class IdentityController {
 
         RegisterShopResult result = registerShopUseCase.registerShop(command);
 
-        var response = new RegisterShopResponse(
+        RegisterShopResponse response = new RegisterShopResponse(
             result.accountId(),
             result.accessToken(),
             result.refreshToken()
