@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.microsoft.itechwx.identity.application.contract.result.RegisterShopResult;
+import com.microsoft.itechwx.identity.application.exception.DuplicateAccountException;
 import com.microsoft.itechwx.identity.application.port.in.RegisterShopUseCase;
 import com.microsoft.itechwx.identity.application.port.out.AccountAuthenticationPort;
 import com.microsoft.itechwx.identity.application.port.out.AccountPort;
@@ -59,7 +60,10 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
     ) {
 
         String email = normalizeEmail(command.email());
-        if (accountAuthenticationPort.existsByEmail(email)) throw new IllegalArgumentException( "Email already existed");
+        if (accountAuthenticationPort.existsByEmail(email)) {
+            throw new DuplicateAccountException();
+        }
+        validatePassword(command.password());
 
         Instant now = clock.instant();
         String passwordHash = passwordHashPort.hash(command.password());
@@ -97,11 +101,14 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
             UUID.randomUUID(),
             authentication,
             UUID.randomUUID(),
-            "macbook M5 promax",
+            null,
             now
         );
 
         authentication.addDeviceSession( session );
+
+        // Persist the new session before its JWT public key references it.
+        accountPort.save(account);
 
 
         // 5. Issue token pair
@@ -127,7 +134,7 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
 
         session.addRefreshToken( refreshToken );
 
-        // 8. Cascade persist whole graph
+        // 8. Cascade persist refresh credential
         accountPort.save(account);
 
 

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public final class RegistrationRateLimitFilter extends OncePerRequestFilter {
 
     static final String REGISTRATION_PATH = "/api/v1/identity/register/shops";
+    static final String LOGIN_PATH = "/api/v1/identity/login/shops";
 
     private final RegistrationRateLimiter rateLimiter;
 
@@ -25,7 +26,10 @@ public final class RegistrationRateLimitFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return !"POST".equals(request.getMethod())
-            || !REGISTRATION_PATH.equals(request.getServletPath());
+            || (
+                !REGISTRATION_PATH.equals(request.getServletPath())
+                && !LOGIN_PATH.equals(request.getServletPath())
+            );
     }
 
     @Override
@@ -34,18 +38,27 @@ public final class RegistrationRateLimitFilter extends OncePerRequestFilter {
         HttpServletResponse response,
         FilterChain filterChain
     ) throws ServletException, IOException {
-        RegistrationRateLimiter.Decision decision = rateLimiter.acquire(request.getRemoteAddr());
+        String clientKey = request.getServletPath() + ":" + request.getRemoteAddr();
+        RegistrationRateLimiter.Decision decision = rateLimiter.acquire(clientKey);
         if (decision.allowed()) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        boolean registrationRequest = REGISTRATION_PATH.equals(request.getServletPath());
+        String errorCode = registrationRequest
+            ? "REGISTRATION_RATE_LIMITED"
+            : "LOGIN_RATE_LIMITED";
+        String errorMessage = registrationRequest
+            ? "Too many registration attempts; try again later"
+            : "Too many login attempts; try again later";
+
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setHeader(HttpHeaders.RETRY_AFTER, Long.toString(decision.retryAfterSeconds()));
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(
-            "{\"code\":\"REGISTRATION_RATE_LIMITED\","
-                + "\"message\":\"Too many registration attempts; try again later\"}"
+            "{\"code\":\"" + errorCode + "\","
+                + "\"message\":\"" + errorMessage + "\"}"
         );
     }
 }

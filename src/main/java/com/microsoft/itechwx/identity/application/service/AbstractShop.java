@@ -1,7 +1,6 @@
 package com.microsoft.itechwx.identity.application.service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 public abstract class AbstractShop {
     private static final int MINIMUM_PASSWORD_LENGTH = 12;
@@ -24,7 +23,7 @@ public abstract class AbstractShop {
         if (value == null || value.isBlank()) {
             return null;
         }
-        return value.strip().toLowerCase(Locale.ROOT);
+        return value.strip();
     }
 
     protected static void validatePassword(String rawPassword) {

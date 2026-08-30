@@ -36,12 +36,43 @@ class RegistrationRateLimitFilterTest {
         assertThat(invoke(filter, "GET").chainInvoked()).isTrue();
     }
 
+    @Test
+    void rateLimitsLoginSeparatelyFromRegistration() throws Exception {
+        RegistrationRateLimitFilter filter = new RegistrationRateLimitFilter(
+            new RegistrationRateLimiter(
+                1,
+                Duration.ofMinutes(1),
+                Clock.fixed(Instant.parse("2026-08-24T04:00:00Z"), ZoneOffset.UTC)
+            )
+        );
+
+        assertThat(invoke(filter, "POST", RegistrationRateLimitFilter.LOGIN_PATH)
+            .chainInvoked()).isTrue();
+        FilterResult rejected = invoke(
+            filter,
+            "POST",
+            RegistrationRateLimitFilter.LOGIN_PATH
+        );
+
+        assertThat(rejected.response().getStatus()).isEqualTo(429);
+        assertThat(rejected.response().getContentAsString()).contains("LOGIN_RATE_LIMITED");
+        assertThat(invoke(filter, "POST").chainInvoked()).isTrue();
+    }
+
     private static FilterResult invoke(
         RegistrationRateLimitFilter filter,
         String method
     ) throws Exception {
+        return invoke(filter, method, RegistrationRateLimitFilter.REGISTRATION_PATH);
+    }
+
+    private static FilterResult invoke(
+        RegistrationRateLimitFilter filter,
+        String method,
+        String path
+    ) throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest(method, "/");
-        request.setServletPath(RegistrationRateLimitFilter.REGISTRATION_PATH);
+        request.setServletPath(path);
         request.setRemoteAddr("192.0.2.10");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicBoolean chainInvoked = new AtomicBoolean();

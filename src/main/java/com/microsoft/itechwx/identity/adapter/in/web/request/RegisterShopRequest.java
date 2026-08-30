@@ -50,4 +50,9 @@ public record RegisterShopRequest(
     String taxId,
     String currency
 
-) {}
+) {
+    @Override
+    public String toString() {
+        return "RegisterShopRequest[fields=<redacted>]";
+    }
+}

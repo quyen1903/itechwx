@@ -4,13 +4,14 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
-    url: jdbc:postgresql://localhost:5432/itechwx
-    username: postgres
-    password: postgres
+    url: ${ITECHWX_DB_URL:jdbc:postgresql://localhost:5432/itechwx}
+    username: ${ITECHWX_DB_USERNAME:postgres}
+    password: ${ITECHWX_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:

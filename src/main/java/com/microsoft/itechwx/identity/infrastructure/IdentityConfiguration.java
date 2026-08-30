@@ -3,9 +3,7 @@ package com.microsoft.itechwx.identity.infrastructure;
 import java.time.Clock;
 
 import com.microsoft.itechwx.identity.adapter.out.security.BCryptPasswordHashAdapter;
-import com.microsoft.itechwx.identity.adapter.out.security.InMemorySigningKeyAdapter;
 import com.microsoft.itechwx.identity.application.port.out.PasswordHashPort;
-import com.microsoft.itechwx.identity.application.port.out.SigningKeyPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -27,12 +25,5 @@ public class IdentityConfiguration {
     @Bean
     PasswordHashPort passwordHashPort(PasswordEncoder passwordEncoder){
         return new BCryptPasswordHashAdapter(passwordEncoder);
-    }
-
-    @Bean
-    SigningKeyPort signingKeyPort() {
-        InMemorySigningKeyAdapter adapter = new InMemorySigningKeyAdapter();
-        adapter.rotate();
-        return adapter;
     }
 }

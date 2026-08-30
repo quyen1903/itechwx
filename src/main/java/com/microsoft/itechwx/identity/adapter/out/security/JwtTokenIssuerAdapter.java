@@ -51,14 +51,17 @@ public class JwtTokenIssuerAdapter implements TokenIssuerPort {
         Instant now
     ) {
 
-        ActiveSigningKey key =
-            signingKeyPort.getActiveKey();
-
         Instant accessExpiresAt =
             now.plus(ACCESS_TTL);
 
         Instant refreshExpiresAt =
             now.plus(REFRESH_TTL);
+
+        ActiveSigningKey key = signingKeyPort.createForSession(
+            sessionId,
+            accessExpiresAt,
+            now
+        );
 
         String accessToken =
             createAccessToken(

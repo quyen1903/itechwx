@@ -8,5 +8,9 @@ public record ActiveSigningKey(
     PrivateKey privateKey,
     PublicKey publicKey
 ) {
-
+    @Override
+    public String toString() {
+        return "ActiveSigningKey[kid=" + kid
+            + ", privateKey=<redacted>, publicKey=<redacted>]";
+    }
 }
