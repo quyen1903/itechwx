@@ -407,6 +407,12 @@ Rules:
   as `userId` and `shopId`; do not silently overload them.
 - Refresh tokens must be rotated and revocable. Store only a hash or other
   non-reversible verifier, never the raw bearer token.
+- Each successful registration or login currently creates a fresh RSA signing
+  key pair for its access token. Persist only the public key with `kid` and
+  session metadata; discard the private key after signing.
+- JWT verification must load the persisted public key by `kid`. Do not add an
+  active-key cache, periodic rotation scheduler, or shared private-key store
+  until scaling requirements justify a reviewed design change.
 - Reuse of a rotated refresh token revokes the affected session/token family
   and creates an audit signal.
 - Passwords must be hashed with an approved password hashing algorithm.

@@ -40,27 +40,27 @@ public class AccountAuthentication {
     )
     private Account account; 
 
-    @Column(name = "username", unique = true)
+    @Column(name = "username", unique = true, length = 64)
     private String username;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 320)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = false, length = 512)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "auth_method", nullable = false)
+    @Column(name = "auth_method", nullable = false, length = 32)
     private AuthMethod authMethod = AuthMethod.EMAIL_PASSWORD;
 
     @Column(name = "last_login_at")
     private Instant  lastLoginAt;
 
-    @Column(name = "login_attempts", nullable = false)
-    private Integer loginAttempts;
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "failed_login_attempts", nullable = false)
+    private Integer failedLoginAttempts;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -93,8 +93,8 @@ public class AccountAuthentication {
         this.authMethod = Objects.requireNonNull(authMethod);
 
         this.lastLoginAt = null;
-        this.loginAttempts = 0;
-        this.isActive = true;
+        this.emailVerifiedAt = now;
+        this.failedLoginAttempts = 0;
         this.createdAt = Objects.requireNonNull(now);
         this.updatedAt = now;
     }
@@ -112,6 +112,12 @@ public class AccountAuthentication {
 
     public void addDeviceSession(DeviceSession session) {
         this.deviceSessions.add( Objects.requireNonNull(session) );
+    }
+
+    public void recordSuccessfulLogin(Instant now) {
+        this.lastLoginAt = Objects.requireNonNull(now);
+        this.failedLoginAttempts = 0;
+        this.updatedAt = now;
     }
 
 }

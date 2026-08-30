@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
@@ -21,9 +22,15 @@ import jakarta.servlet.DispatcherType;
 public class SecurityConfiguration {
 
     @Bean
-    SecurityFilterChain applicationSecurity(HttpSecurity http) throws Exception {
+    SecurityFilterChain applicationSecurity(
+        HttpSecurity http,
+        JwtDecoder jwtDecoder
+    ) throws Exception {
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers(RegistrationRateLimitFilter.REGISTRATION_PATH))
+            .csrf(csrf -> csrf.ignoringRequestMatchers(
+                RegistrationRateLimitFilter.REGISTRATION_PATH,
+                RegistrationRateLimitFilter.LOGIN_PATH
+            ))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -32,9 +39,16 @@ public class SecurityConfiguration {
             )
             .authorizeHttpRequests(authorize -> authorize
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers(HttpMethod.POST, RegistrationRateLimitFilter.REGISTRATION_PATH)
+                .requestMatchers(
+                    HttpMethod.POST,
+                    RegistrationRateLimitFilter.REGISTRATION_PATH,
+                    RegistrationRateLimitFilter.LOGIN_PATH
+                )
                     .permitAll()
                 .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(resourceServer ->
+                resourceServer.jwt(jwt -> jwt.decoder(jwtDecoder))
             );
 
         return http.build();

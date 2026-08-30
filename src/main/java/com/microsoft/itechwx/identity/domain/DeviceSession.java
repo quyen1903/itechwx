@@ -47,7 +47,7 @@ public class DeviceSession {
     @Column(name = "device_id", nullable = false)
     private UUID deviceId;
 
-    @Column(name = "device_name")
+    @Column(name = "device_name", length = 200)
     private String deviceName;
 
     @Column(name = "last_login_at", nullable = false)

@@ -44,9 +44,10 @@ The current baseline is derived from `build.gradle.kts`.
 | Outbound HTTP | `spring-boot-starter-restclient` | Outbound integration adapters only |
 | Persistence | `spring-boot-starter-data-jpa` | Outbound persistence adapters only |
 | Security | `spring-boot-starter-security` | Security configuration and security adapters |
+| JWT | `spring-security-oauth2-jose` and `spring-security-oauth2-resource-server` | RS256 issuance and bearer-token verification in Identity/security adapters |
 | Validation | `spring-boot-starter-validation` | Inbound DTO/configuration validation; not domain modeling |
-| Migration | `spring-boot-starter-flyway` and `flyway-database-oracle` | Flyway auto-configuration and versioned Oracle schema changes |
-| Database | Oracle JDBC (`ojdbc17`) | Runtime persistence infrastructure for Oracle Database 23ai |
+| Migration | `spring-boot-starter-flyway` | Flyway integration; disabled for the current local PostgreSQL schema managed by Hibernate |
+| Database | PostgreSQL JDBC | Current local runtime persistence infrastructure |
 | Boilerplate generation | Lombok, compile/annotation-processor only | Adapter/configuration boilerplate; restricted in domain |
 | JPA testing | `spring-boot-starter-data-jpa-test` | Persistence adapter/integration tests |
 | HTTP client testing | `spring-boot-starter-restclient-test` | Outbound HTTP adapter tests |
@@ -174,8 +175,12 @@ Prefer explicit domain constructors/factories and named behavior methods.
   hashes carry an algorithm identifier and can migrate over time.
 - Do not implement custom password hashing, token signing, encryption, secure
   random generation, or key parsing.
-- Do not add a JWT library until the access-token contract, algorithm, issuer,
-  audience, key storage, rotation, and test strategy are documented.
+- Use Spring Security OAuth2 JOSE/resource-server support and Nimbus only
+  through the Identity security adapters.
+- Each successful registration or login creates a new RSA key pair. Persist
+  only the public key and `kid`; never persist the private key.
+- Resolve verification keys from the database by `kid`. There is no
+  scheduled active-key rotation in the current early-stage design.
 - Store only refresh-token hashes/non-reversible verifiers; raw bearer tokens
   are never persistence values.
 
@@ -275,8 +280,7 @@ Approved Gradle placement:
 ```kotlin
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("org.flywaydb:flyway-database-oracle")
-    runtimeOnly("com.oracle.database.jdbc:ojdbc17")
+    runtimeOnly("org.postgresql:postgresql")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

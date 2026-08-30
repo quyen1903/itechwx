@@ -217,6 +217,14 @@ Mandatory rules:
   endpoints require rate limiting and enumeration-resistant responses.
 - Never include passwords, password hashes, raw verification/reset tokens, raw
   refresh tokens, or private key material in domain or integration events.
+- The current early-stage access-token design creates a fresh RSA key pair for
+  every successful registration or login. The private key exists only long
+  enough to sign that access token; only the public key, its `kid`, session,
+  algorithm, and access-token expiry are persisted.
+- This per-authentication key design has no active-key scheduler and no periodic
+  rotation. Verification resolves the public key by the JWT header `kid`.
+  Expired public-key rows may be cleaned up later without affecting refresh
+  tokens.
 
 ### Hexagonal security boundaries
 

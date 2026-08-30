@@ -30,22 +30,22 @@ public class AccountProfile {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Column(name = "avatar")
+    @Column(name = "avatar", length = 2048)
     private String avatar;
 
-    @Column(name = "phone")
+    @Column(name = "phone", length = 32)
     private String phone;
 
-    @Column(name = "address")
+    @Column(name = "address", length = 200)
     private String address;
 
-    @Column(name = "timezone")
+    @Column(name = "timezone", length = 64)
     private String timezone;
 
-    @Column(name = "language")
+    @Column(name = "language", length = 35)
     private String language;
 
     @Column(name = "is_active", nullable = false)

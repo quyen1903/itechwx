@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.microsoft.itechwx.identity.domain.enums.AccountType;
+import com.microsoft.itechwx.identity.domain.enums.AccountStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,8 +33,9 @@ public class Account {
     @Column(name = "account_type", nullable = false, length = 32)
     private AccountType accountType;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 32)
+    private AccountStatus status;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -64,7 +66,7 @@ public class Account {
     ) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.accountType = Objects.requireNonNull(accountType);
-        this.isActive = true;
+        this.status = AccountStatus.ACTIVE;
         this.createdAt = Objects.requireNonNull(now);
         this.updatedAt = now;
 
@@ -83,6 +85,10 @@ public class Account {
 
     public void attachProfile(AccountProfile profile){
         this.accountProfile = Objects.requireNonNull(profile);
+    }
+
+    public boolean canAuthenticate() {
+        return status == AccountStatus.ACTIVE;
     }
 
 

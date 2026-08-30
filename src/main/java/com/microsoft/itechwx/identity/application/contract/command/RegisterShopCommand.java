@@ -13,4 +13,9 @@ public record RegisterShopCommand(
     String businessType,
     String taxId,
     String currency
-) {}
+) {
+    @Override
+    public String toString() {
+        return "RegisterShopCommand[fields=<redacted>]";
+    }
+}
