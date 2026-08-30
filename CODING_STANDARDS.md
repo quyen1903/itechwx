@@ -44,7 +44,7 @@ External actor
   -> Domain aggregate / value object / policy / event
   -> Output port
   -> Outbound adapter: JPA / security / messaging / external client
-  -> PostgreSQL / Redis / Kafka / external provider
+  -> Oracle Database / Redis / Kafka / external provider
   -> Stable result mapped by the inbound adapter
 ```
 
@@ -658,8 +658,8 @@ features/<feature>/
 - Use `shop_id` on shop-owned tables.
 - Use `user_id` on user-private tables.
 - Prefer `created_at`, `updated_at`, and `deleted_at` timestamps where soft delete is needed.
-- Store metadata in JSON/JSONB only when the shape is intentionally flexible.
-- Do not use JSON/JSONB to avoid modeling core business data.
+- Store metadata in Oracle `JSON` only when the shape is intentionally flexible.
+- Do not use `JSON` to avoid modeling core business data.
 - Add check constraints for values with hard invariants when supported.
 
 ### Migration rules
@@ -911,7 +911,7 @@ Use this order unless there is a strong reason not to:
 | Identity creates a Shop aggregate directly | Use an onboarding workflow and the Shop input port/event |
 | Store a raw refresh token | Store a token hash and rotate/revoke sessions |
 | Catch and ignore errors | Convert to typed failure or log and rethrow |
-| Use JSON/JSONB for all business data | Model stable fields relationally |
+| Use JSON for all business data | Model stable fields relationally |
 | Public route by omission | Public route by explicit declaration |
 | Background job without scope | Job payload includes `userId`, `shopId`, or system context |
 | Shop query without `shopId` | Scope query by `shopId` or explicit admin method |

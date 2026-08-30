@@ -68,9 +68,9 @@ For notification, chat, or realtime work, also read:
   - `JwtUser`: `sub = userId`, `role = "user"`, `email`, `iat`, `exp`
   - `JwtShop`: `sub = shopId`, `role = "shop"`, `permissions`, `iat`, `exp`
 - Full RBAC may be expanded later, but current role and permission checks must not be bypassed.
-- PostgreSQL is the primary database.
+- Oracle Database 23ai is the primary database.
 - The backend uses Java 25, Spring Boot, Gradle, Spring Data JPA, Spring
-  Security, Jakarta Validation, Flyway, and PostgreSQL.
+  Security, Jakarta Validation, Flyway, and Oracle Database 23ai.
 - The architectural style is Hexagonal Architecture with DDD bounded contexts.
 - Dependency direction is inward: adapters depend on application/domain;
   domain code never depends on Spring, JPA, HTTP, JSON, Redis, Kafka, or an

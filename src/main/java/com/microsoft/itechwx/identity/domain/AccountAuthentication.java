@@ -1,161 +1,117 @@
 package com.microsoft.itechwx.identity.domain;
 
 import java.time.Instant;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.microsoft.itechwx.identity.domain.enums.AuthMethod;
 
-public final class AccountAuthentication {
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-    private final UUID id;
-    private final UUID accountId;
-    private final String normalizedEmail;
-    private final String normalizedUsername;
-    private final String passwordHash;
-    private final AuthMethod authMethod;
-    private final Instant emailVerifiedAt;
-    private final int failedLoginAttempts;
-    private final Instant lastLoginAt;
-    private final Instant createdAt;
-    private final Instant updatedAt;
+@Entity
+@Table(name = "account_authentications")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class AccountAuthentication {
+    @Id
+    @Column(name = "id", nullable = false)
+    private UUID id;
+
+    @OneToOne(optional = false)
+    @JoinColumn(
+        name = "account_id", 
+        nullable = false, 
+        unique = true
+    )
+    private Account account; 
+
+    @Column(name = "username", unique = true)
+    private String username;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_method", nullable = false)
+    private AuthMethod authMethod = AuthMethod.EMAIL_PASSWORD;
+
+    @Column(name = "last_login_at")
+    private Instant  lastLoginAt;
+
+    @Column(name = "login_attempts", nullable = false)
+    private Integer loginAttempts;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @OneToMany(        
+        mappedBy = "accountAuthentication",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<DeviceSession> deviceSessions = new ArrayList<>();
 
     private AccountAuthentication(
         UUID id,
-        UUID accountId,
-        String normalizedEmail,
-        String normalizedUsername,
+        Account account,
+        String username,
+        String email,
         String passwordHash,
         AuthMethod authMethod,
-        Instant emailVerifiedAt,
-        int failedLoginAttempts,
-        Instant lastLoginAt,
-        Instant createdAt,
-        Instant updatedAt
-    ) {
-        this.id = Objects.requireNonNull(id, "id must not be null");
-        this.accountId = Objects.requireNonNull(accountId, "accountId must not be null");
-        this.normalizedEmail = validateNormalizedEmail(normalizedEmail);
-        this.normalizedUsername = validateNormalizedUsername(normalizedUsername);
-        this.passwordHash = validatePasswordHash(passwordHash);
-        this.authMethod = Objects.requireNonNull(authMethod, "authMethod must not be null");
-        this.emailVerifiedAt = emailVerifiedAt;
-        this.failedLoginAttempts = failedLoginAttempts;
-        this.lastLoginAt = lastLoginAt;
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
-        this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt must not be null");
-
-        if (failedLoginAttempts < 0) {
-            throw new IllegalArgumentException("failedLoginAttempts must not be negative");
-        }
-    }
-
-    static AccountAuthentication passwordCredential(
-        UUID id,
-        UUID accountId,
-        String normalizedEmail,
-        String normalizedUsername,
-        String passwordHash,
         Instant now
     ) {
-        return new AccountAuthentication(
-            id,
-            accountId,
-            normalizedEmail,
-            normalizedUsername,
-            passwordHash,
-            AuthMethod.EMAIL_PASSWORD,
-            null,
-            0,
-            null,
-            now,
-            now
-        );
+        this.id = Objects.requireNonNull(id);
+        this.account = Objects.requireNonNull(account);
+        this.username = username;
+        this.email = Objects.requireNonNull(email);
+        this.passwordHash = Objects.requireNonNull(passwordHash);
+        this.authMethod = Objects.requireNonNull(authMethod);
+
+        this.lastLoginAt = null;
+        this.loginAttempts = 0;
+        this.isActive = true;
+        this.createdAt = Objects.requireNonNull(now);
+        this.updatedAt = now;
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " must not be blank");
-        }
-        return value;
+    public static AccountAuthentication register(
+        UUID id,
+        Account account,
+        String username,
+        String email,
+        String passwordHash,
+        Instant now
+    ){
+        return new AccountAuthentication(id, account, username, email, passwordHash, AuthMethod.EMAIL_PASSWORD,now);
     }
 
-    private static String validateNormalizedEmail(String value) {
-        String email = requireText(value, "normalizedEmail");
-        int atIndex = email.indexOf('@');
-        if (email.length() > 320
-            || atIndex <= 0
-            || atIndex != email.lastIndexOf('@')
-            || atIndex == email.length() - 1
-            || !email.equals(email.strip().toLowerCase(Locale.ROOT))) {
-            throw new IllegalArgumentException("normalizedEmail is invalid");
-        }
-        return email;
+    public void addDeviceSession(DeviceSession session) {
+        this.deviceSessions.add( Objects.requireNonNull(session) );
     }
 
-    private static String validateNormalizedUsername(String value) {
-        if (value == null) {
-            return null;
-        }
-        if (value.length() < 3
-            || value.length() > 64
-            || !value.matches("[a-z0-9._-]+")
-            || !value.equals(value.strip().toLowerCase(Locale.ROOT))) {
-            throw new IllegalArgumentException("normalizedUsername is invalid");
-        }
-        return value;
-    }
-
-    private static String validatePasswordHash(String value) {
-        String hash = requireText(value, "passwordHash");
-        if (hash.length() < 20 || hash.length() > 512) {
-            throw new IllegalArgumentException("passwordHash has an invalid length");
-        }
-        return hash;
-    }
-
-    public UUID id() {
-        return id;
-    }
-
-    public UUID accountId() {
-        return accountId;
-    }
-
-    public String normalizedEmail() {
-        return normalizedEmail;
-    }
-
-    public String normalizedUsername() {
-        return normalizedUsername;
-    }
-
-    public String passwordHash() {
-        return passwordHash;
-    }
-
-    public AuthMethod authMethod() {
-        return authMethod;
-    }
-
-    public Instant emailVerifiedAt() {
-        return emailVerifiedAt;
-    }
-
-    public int failedLoginAttempts() {
-        return failedLoginAttempts;
-    }
-
-    public Instant lastLoginAt() {
-        return lastLoginAt;
-    }
-
-    public Instant createdAt() {
-        return createdAt;
-    }
-
-    public Instant updatedAt() {
-        return updatedAt;
-    }
 }

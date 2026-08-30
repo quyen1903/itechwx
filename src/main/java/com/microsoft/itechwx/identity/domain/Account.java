@@ -4,87 +4,86 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.microsoft.itechwx.identity.domain.enums.AccountStatus;
 import com.microsoft.itechwx.identity.domain.enums.AccountType;
 
-public final class Account {
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
 
-    private final UUID id;
-    private final AccountType accountType;
-    private final AccountStatus status;
-    private final AccountAuthentication authentication;
-    private final Instant createdAt;
-    private final Instant updatedAt;
+@Table(name = "accounts")
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Account {
+    @Id
+    @Column(name = "id", nullable = false)
+    private UUID id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_type", nullable = false, length = 32)
+    private AccountType accountType;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @OneToOne(
+        mappedBy = "account",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private AccountAuthentication accountAuthentication;
+
+    @OneToOne(        
+        mappedBy = "account",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private AccountProfile accountProfile;
+    
     private Account(
-        UUID id,
+        UUID id, 
         AccountType accountType,
-        AccountStatus status,
-        AccountAuthentication authentication,
-        Instant createdAt,
-        Instant updatedAt
-    ) {
-        this.id = Objects.requireNonNull(id, "id must not be null");
-        this.accountType = Objects.requireNonNull(accountType, "accountType must not be null");
-        this.status = Objects.requireNonNull(status, "status must not be null");
-        this.authentication = Objects.requireNonNull(authentication, "authentication must not be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
-        this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt must not be null");
-
-        if (!id.equals(authentication.accountId())) {
-            throw new IllegalArgumentException("Authentication must belong to the account");
-        }
-    }
-
-    public static Account register(
-        UUID accountId,
-        AccountType accountType,
-        UUID authenticationId,
-        String normalizedEmail,
-        String normalizedUsername,
-        String passwordHash,
         Instant now
     ) {
-        AccountAuthentication authentication = AccountAuthentication.passwordCredential(
-            authenticationId,
-            accountId,
-            normalizedEmail,
-            normalizedUsername,
-            passwordHash,
-            now
-        );
+        this.id = Objects.requireNonNull(id, "id must not be null");
+        this.accountType = Objects.requireNonNull(accountType);
+        this.isActive = true;
+        this.createdAt = Objects.requireNonNull(now);
+        this.updatedAt = now;
 
-        return new Account(
-            accountId,
-            accountType,
-            AccountStatus.PENDING_VERIFICATION,
-            authentication,
-            now,
-            now
-        );
     }
 
-    public UUID id() {
-        return id;
+    public static Account registerShop(
+        UUID id,
+        Instant now
+    ){
+        return new Account(id, AccountType.SHOP, now);
     }
 
-    public AccountType accountType() {
-        return accountType;
+    public void attachAuthentication( AccountAuthentication authentication ) {
+        this.accountAuthentication = Objects.requireNonNull(authentication);
     }
 
-    public AccountStatus status() {
-        return status;
+    public void attachProfile(AccountProfile profile){
+        this.accountProfile = Objects.requireNonNull(profile);
     }
 
-    public AccountAuthentication authentication() {
-        return authentication;
-    }
 
-    public Instant createdAt() {
-        return createdAt;
-    }
-
-    public Instant updatedAt() {
-        return updatedAt;
-    }
 }
