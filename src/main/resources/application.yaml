@@ -5,8 +5,8 @@ spring:
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${ITECHWX_DB_URL:jdbc:postgresql://localhost:5432/itechwx}
-    username: ${ITECHWX_DB_USERNAME:postgres}
-    password: ${ITECHWX_DB_PASSWORD:postgres}
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
@@ -18,6 +18,9 @@ spring:
         format_sql: false
   flyway:
     enabled: false
+  jackson:
+    serialization:
+      indent-output: true
 itechwx:
   security:
     registration-rate-limit:

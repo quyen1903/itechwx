@@ -72,7 +72,6 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
         // 1. Account
         Account account = Account.registerShop( UUID.randomUUID(),now);
 
-
         // 2. Authentication
         AccountAuthentication authentication = AccountAuthentication.register(
             UUID.randomUUID(),
@@ -84,7 +83,6 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
         );
 
         account.attachAuthentication( authentication );
-
 
         // 3. Profile
         AccountProfile profile = AccountProfile.register(
@@ -106,15 +104,22 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
         );
 
         authentication.addDeviceSession( session );
-
         // Persist the new session before its JWT public key references it.
-        accountPort.save(account);
-
+        Account managedAccount = accountPort.save(account);
+        DeviceSession managedSession = managedAccount
+            .getAccountAuthentication()
+            .getDeviceSessions()
+            .stream()
+            .filter(candidate -> candidate.getId().equals(session.getId()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException(
+                "Persisted account is missing its device session"
+            ));
 
         // 5. Issue token pair
         TokenPair pair = tokenIssuerPort.issuePair(
-            account.getId(),
-            session.getId(),
+            managedAccount.getId(),
+            managedSession.getId(),
             email,
             now
         );
@@ -126,21 +131,21 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
         // 7. Save refresh credential
         RefreshToken refreshToken =RefreshToken.create(
             UUID.randomUUID(),
-            session,
+            managedSession,
             refreshHash,
             pair.refreshTokenExpiresAt(),
             now
         );
 
-        session.addRefreshToken( refreshToken );
+        managedSession.addRefreshToken( refreshToken );
 
         // 8. Cascade persist refresh credential
-        accountPort.save(account);
+        accountPort.save(managedAccount);
 
 
         // 9. Return raw credentials
         return new RegisterShopResult(
-            account.getId(),
+            managedAccount.getId(),
             pair.accessToken(),
             pair.refreshToken()
         );
