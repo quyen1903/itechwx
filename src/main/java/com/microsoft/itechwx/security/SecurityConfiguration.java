@@ -29,7 +29,8 @@ public class SecurityConfiguration {
         http
             .csrf(csrf -> csrf.ignoringRequestMatchers(
                 RegistrationRateLimitFilter.REGISTRATION_PATH,
-                RegistrationRateLimitFilter.LOGIN_PATH
+                RegistrationRateLimitFilter.LOGIN_PATH,
+                RegistrationRateLimitFilter.REFRESH_PATH
             ))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -40,9 +41,16 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(authorize -> authorize
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers(
+                    HttpMethod.GET,
+                    "/actuator/health",
+                    "/actuator/health/**"
+                )
+                    .permitAll()
+                .requestMatchers(
                     HttpMethod.POST,
                     RegistrationRateLimitFilter.REGISTRATION_PATH,
-                    RegistrationRateLimitFilter.LOGIN_PATH
+                    RegistrationRateLimitFilter.LOGIN_PATH,
+                    RegistrationRateLimitFilter.REFRESH_PATH
                 )
                     .permitAll()
                 .anyRequest().authenticated()

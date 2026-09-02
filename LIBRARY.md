@@ -46,6 +46,7 @@ The current baseline is derived from `build.gradle.kts`.
 | Security | `spring-boot-starter-security` | Security configuration and security adapters |
 | JWT | `spring-security-oauth2-jose` and `spring-security-oauth2-resource-server` | RS256 issuance and bearer-token verification in Identity/security adapters |
 | Validation | `spring-boot-starter-validation` | Inbound DTO/configuration validation; not domain modeling |
+| Observability | `spring-boot-starter-actuator` | Management adapter; public health is minimal, while local diagnostic endpoints remain authenticated |
 | Migration | `spring-boot-starter-flyway` | Flyway integration; disabled for the current local PostgreSQL schema managed by Hibernate |
 | Database | PostgreSQL JDBC | Current local runtime persistence infrastructure |
 | Boilerplate generation | Lombok, compile/annotation-processor only | Adapter/configuration boilerplate; restricted in domain |
@@ -177,7 +178,8 @@ Prefer explicit domain constructors/factories and named behavior methods.
   random generation, or key parsing.
 - Use Spring Security OAuth2 JOSE/resource-server support and Nimbus only
   through the Identity security adapters.
-- Each successful registration or login creates a new RSA key pair. Persist
+- Each successful token issuance during registration, login, or refresh creates
+  a new RSA key pair. Persist
   only the public key and `kid`; never persist the private key.
 - Resolve verification keys from the database by `kid`. There is no
   scheduled active-key rotation in the current early-stage design.

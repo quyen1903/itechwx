@@ -59,6 +59,31 @@ class RegistrationRateLimitFilterTest {
         assertThat(invoke(filter, "POST").chainInvoked()).isTrue();
     }
 
+    @Test
+    void rateLimitsRefreshSeparatelyFromLoginAndRegistration() throws Exception {
+        RegistrationRateLimitFilter filter = new RegistrationRateLimitFilter(
+            new RegistrationRateLimiter(
+                1,
+                Duration.ofMinutes(1),
+                Clock.fixed(Instant.parse("2026-08-24T04:00:00Z"), ZoneOffset.UTC)
+            )
+        );
+
+        assertThat(invoke(filter, "POST", RegistrationRateLimitFilter.REFRESH_PATH)
+            .chainInvoked()).isTrue();
+        FilterResult rejected = invoke(
+            filter,
+            "POST",
+            RegistrationRateLimitFilter.REFRESH_PATH
+        );
+
+        assertThat(rejected.response().getStatus()).isEqualTo(429);
+        assertThat(rejected.response().getContentAsString()).contains("REFRESH_RATE_LIMITED");
+        assertThat(invoke(filter, "POST", RegistrationRateLimitFilter.LOGIN_PATH)
+            .chainInvoked()).isTrue();
+        assertThat(invoke(filter, "POST").chainInvoked()).isTrue();
+    }
+
     private static FilterResult invoke(
         RegistrationRateLimitFilter filter,
         String method

@@ -16,6 +16,7 @@ public final class RegistrationRateLimitFilter extends OncePerRequestFilter {
 
     static final String REGISTRATION_PATH = "/api/v1/identity/register/shops";
     static final String LOGIN_PATH = "/api/v1/identity/login/shops";
+    static final String REFRESH_PATH = "/api/v1/identity/refreshtoken/shops";
 
     private final RegistrationRateLimiter rateLimiter;
 
@@ -29,6 +30,7 @@ public final class RegistrationRateLimitFilter extends OncePerRequestFilter {
             || (
                 !REGISTRATION_PATH.equals(request.getServletPath())
                 && !LOGIN_PATH.equals(request.getServletPath())
+                && !REFRESH_PATH.equals(request.getServletPath())
             );
     }
 
@@ -45,13 +47,18 @@ public final class RegistrationRateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        boolean registrationRequest = REGISTRATION_PATH.equals(request.getServletPath());
-        String errorCode = registrationRequest
-            ? "REGISTRATION_RATE_LIMITED"
-            : "LOGIN_RATE_LIMITED";
-        String errorMessage = registrationRequest
-            ? "Too many registration attempts; try again later"
-            : "Too many login attempts; try again later";
+        String errorCode;
+        String errorMessage;
+        if (REGISTRATION_PATH.equals(request.getServletPath())) {
+            errorCode = "REGISTRATION_RATE_LIMITED";
+            errorMessage = "Too many registration attempts; try again later";
+        } else if (LOGIN_PATH.equals(request.getServletPath())) {
+            errorCode = "LOGIN_RATE_LIMITED";
+            errorMessage = "Too many login attempts; try again later";
+        } else {
+            errorCode = "REFRESH_RATE_LIMITED";
+            errorMessage = "Too many refresh attempts; try again later";
+        }
 
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setHeader(HttpHeaders.RETRY_AFTER, Long.toString(decision.retryAfterSeconds()));

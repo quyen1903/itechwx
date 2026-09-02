@@ -1,7 +1,7 @@
 {
   "build.gradle.kts": {
-    "mtime": 1788098137.4462495,
-    "ast_hash": "778ad0ecf302b38c3b8bef3bcd4ef59e",
+    "mtime": 1788326980.61,
+    "ast_hash": "c30e5c4ffbe301af57189bb27a69dfc8",
     "semantic_hash": ""
   },
   "gradlew": {
@@ -25,18 +25,18 @@
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/domain/Account.java": {
-    "mtime": 1788098136.8392577,
-    "ast_hash": "b0b4d0215cbaf85e5575e66659b49dd2",
+    "mtime": 1788328880.552,
+    "ast_hash": "0a67fc5b93bb6fbb27ccc5d429aa8df0",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/domain/AccountAuthentication.java": {
-    "mtime": 1788098137.37325,
-    "ast_hash": "f802e3ba8ae9f9b2e32522db1413d1b7",
+    "mtime": 1788106106.8125129,
+    "ast_hash": "f0c055a4980d16d5cd99561bf4301c0e",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/domain/DeviceSession.java": {
-    "mtime": 1788098137.3772535,
-    "ast_hash": "1147350cd4982554624cf906578f15d4",
+    "mtime": 1788378111.7871833,
+    "ast_hash": "97d4b9d506083083056a500818a85302",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/domain/enums/AccountType.java": {
@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/infrastructure/IdentityConfiguration.java": {
-    "mtime": 1788098136.7612503,
-    "ast_hash": "5c9e834ee89d431537aff5b904881481",
+    "mtime": 1788106106.8175147,
+    "ast_hash": "2723d3dc6e297d2fce146788d275695d",
     "semantic_hash": ""
   },
   "src/main/resources/db/migration/V1__initial_schema.sql": {
@@ -65,23 +65,23 @@
     "semantic_hash": ""
   },
   "CODING_STANDARDS.md": {
-    "mtime": 1788098459.2462244,
-    "ast_hash": "d8b703ff05fa1810f95a02a564f65fa7",
+    "mtime": 1788106106.7275147,
+    "ast_hash": "3145c0058fa89eeda1941352ba99a31a",
     "semantic_hash": ""
   },
   "LIBRARY.md": {
-    "mtime": 1788098459.2442224,
-    "ast_hash": "083ad410e03d0e1865891ab489ce5cbd",
+    "mtime": 1788378573.825236,
+    "ast_hash": "58f711cf81f9fd1a33ed3853d370dcc5",
     "semantic_hash": ""
   },
   "SECURITY.md": {
-    "mtime": 1788098459.243227,
-    "ast_hash": "f13c87519acae8e8c4a33f87ad47d2cd",
+    "mtime": 1788378573.8242345,
+    "ast_hash": "9bcea4a4d9276479c43e052054bd6863",
     "semantic_hash": ""
   },
   "src/main/resources/application.yaml": {
-    "mtime": 1788098137.4492688,
-    "ast_hash": "de594e734ba4c365a9cfd5c5c4df94b1",
+    "mtime": 1788375401.714,
+    "ast_hash": "40635ccae6a86e61b5d93538e98d4663",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/contract/command/CreateAccountCommand.java": {
@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/security/RegistrationRateLimitFilter.java": {
-    "mtime": 1788098220.251425,
-    "ast_hash": "6b78757fe89a10522d3ffccb2e2b4755",
+    "mtime": 1788378163.4092207,
+    "ast_hash": "0f203864e76a66edac13dabd5bfc6e29",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/security/RegistrationRateLimiter.java": {
@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/security/SecurityConfiguration.java": {
-    "mtime": 1788098137.307252,
-    "ast_hash": "548f5dfac7cdaf7a624e1d0b07b66884",
+    "mtime": 1788378163.4102252,
+    "ast_hash": "142ef6f75ead663201df928bd2014a02",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/shop/application/contract/command/CreateShopCommand.java": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/test/java/com/microsoft/itechwx/security/RegistrationRateLimitFilterTest.java": {
-    "mtime": 1788098309.0769916,
-    "ast_hash": "47cd07d19f3c0c87eaeeebab2e3d5385",
+    "mtime": 1788378253.253908,
+    "ast_hash": "5a99fd99eab2c1f7eb42778bcab5067b",
     "semantic_hash": ""
   },
   "src/test/java/com/microsoft/itechwx/security/RegistrationRateLimiterTest.java": {
@@ -195,53 +195,38 @@
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/IdentityController.java": {
-    "mtime": 1788098137.303251,
-    "ast_hash": "b199506d841d5f9f7b971c5792fe01ef",
+    "mtime": 1788378513.1236377,
+    "ast_hash": "d952a34b77db853f7a8e4adf7b8c183a",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/IdentityExceptionHandler.java": {
-    "mtime": 1788098414.525772,
-    "ast_hash": "a681c8078f9a6e0e73b0ef4872b156f9",
+    "mtime": 1788378151.004779,
+    "ast_hash": "ffa000ef1f682a8ecfb918e5fd3d9c77",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/request/LoginShopRequest.java": {
-    "mtime": 1788098588.6010458,
-    "ast_hash": "801e5085b4a14ac8364896ea8f2f8aa5",
+    "mtime": 1788106106.782516,
+    "ast_hash": "33baf14358c25819bb741a395d481823",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/request/RegisterShopRequest.java": {
-    "mtime": 1788098588.602044,
-    "ast_hash": "5076860751e3b5d7dde465359497b074",
+    "mtime": 1788106106.785513,
+    "ast_hash": "ac2ae2f07ee2e09c6fff85f2f1bdf41a",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/response/IdentityErrorResponse.java": {
-    "mtime": 1788098414.5247643,
-    "ast_hash": "df793f8f2122ae560748b2f3ed0b2532",
-    "semantic_hash": ""
-  },
-  "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/response/LoginShopResponse.java": {
-    "mtime": 1788098588.600068,
-    "ast_hash": "0db34fc769b10be3decaa62cd7b28e5c",
-    "semantic_hash": ""
-  },
-  "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/response/RegisterShopResponse.java": {
-    "mtime": 1788098588.599064,
-    "ast_hash": "e661ac6b6eafeb531776d411c50bc425",
+    "mtime": 1788106106.7865129,
+    "ast_hash": "26106d6fa4cc1df93c7fb5774c54dbea",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/contract/command/LoginShopCommand.java": {
-    "mtime": 1788098136.7682512,
-    "ast_hash": "af50098f2d3094a7096214482cf6437c",
+    "mtime": 1788106106.7955134,
+    "ast_hash": "5d41b4560d44962df26b336220614c25",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/contract/command/RegisterShopCommand.java": {
-    "mtime": 1788098588.603046,
-    "ast_hash": "a4d33eb534b8023a7bccd995ddd06514",
-    "semantic_hash": ""
-  },
-  "src/main/java/com/microsoft/itechwx/identity/application/contract/result/LoginShopResult.java": {
-    "mtime": 1788098588.5970452,
-    "ast_hash": "9d365f1749678c7cd8dc1e2d58eb0c6d",
+    "mtime": 1788106106.7965155,
+    "ast_hash": "73a1159320adcfe37391618c2dd19c6d",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/contract/result/LogoutShopResult.java": {
@@ -249,54 +234,49 @@
     "ast_hash": "e86683ae6d6944d072a453bd068c4362",
     "semantic_hash": ""
   },
-  "src/main/java/com/microsoft/itechwx/identity/application/contract/result/RegisterShopResult.java": {
-    "mtime": 1788098588.5970452,
-    "ast_hash": "19cca656ac19b2d1a90bc59817e2177b",
-    "semantic_hash": ""
-  },
   "src/main/java/com/microsoft/itechwx/identity/application/exception/InvalidCredentialsException.java": {
-    "mtime": 1788098414.5167992,
-    "ast_hash": "cdc2c11958fef5e2ab9ff0fa28e714d5",
+    "mtime": 1788106106.7995126,
+    "ast_hash": "deb5a4cc06f5bddd8ae349bd90ee3865",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/port/in/AuthenticationShopUseCase.java": {
-    "mtime": 1788098136.763259,
-    "ast_hash": "0b20e09f2954f57dca55c43fdd254346",
+    "mtime": 1788378086.7639575,
+    "ast_hash": "b7deeff8a1127a19fb5d6a8d24851686",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/port/in/RegisterShopUseCase.java": {
-    "mtime": 1788077008.4994724,
-    "ast_hash": "f1078f5a5bb1c49a08bb2b0673d88b0f",
+    "mtime": 1788186412.7987123,
+    "ast_hash": "cb2dc24630170bb73086dfac4d288adc",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/service/AbstractShop.java": {
-    "mtime": 1788098414.5317736,
-    "ast_hash": "ee2dc9d0787252b666edd4c17cc2d66a",
+    "mtime": 1788106106.807513,
+    "ast_hash": "b1160a3954aa3a0b71366ed9b3534da5",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/service/ShopAuthentication.java": {
-    "mtime": 1788098414.5277655,
-    "ast_hash": "501459c9c43d21ec2f7d81d57c387984",
+    "mtime": 1788378573.823234,
+    "ast_hash": "2e00d10eba5d8074406a1064df695573",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/application/service/ShopRegister.java": {
-    "mtime": 1788098414.5297732,
-    "ast_hash": "254317f904a571fa2ec13cabb30fb3b6",
+    "mtime": 1788328079.736,
+    "ast_hash": "3b0ae7cb8d276fe5bbabaa8228890e0d",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/domain/AccountProfile.java": {
-    "mtime": 1788098137.37525,
-    "ast_hash": "2aa1ec30c88d7c87de107829f05c0a9e",
+    "mtime": 1788106106.813512,
+    "ast_hash": "a9fcc98929e97071b37cce986a5c6fe6",
     "semantic_hash": ""
   },
   "src/main/java/com/microsoft/itechwx/identity/domain/RefreshToken.java": {
-    "mtime": 1788098137.3792481,
-    "ast_hash": "f91601088a09dc4a564b217efca8f7c4",
+    "mtime": 1788378111.786183,
+    "ast_hash": "8c25b899f1f720bf3d2d2f2730b53a0a",
     "semantic_hash": ""
   },
   "src/main/resources/db/migration/V3__authentication_sessions_and_jwt_public_keys.sql": {
-    "mtime": 1788098137.4452555,
-    "ast_hash": "f30876cbdbb61b5437d15764e8c4bb47",
+    "mtime": 1788106106.825514,
+    "ast_hash": "cd3bd28625f4de9d7e2fa255f0e2264b",
     "semantic_hash": ""
   },
   "src/main/resources/db/postgresql-migration/V1__initial_schema.sql": {
@@ -310,13 +290,63 @@
     "semantic_hash": ""
   },
   "src/test/java/com/microsoft/itechwx/ItechwxApplicationTest.java": {
-    "mtime": 1788098519.366057,
-    "ast_hash": "fe737ce285d1bf6b9e11ee08aca66d1c",
+    "mtime": 1788106106.826514,
+    "ast_hash": "fd6f1f54d06f8cfecf8fc0d034bd228b",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1788077008.4034748,
-    "ast_hash": "f45e8efffa5ad0900d850207b41765c5",
+    "mtime": 1788378573.8262355,
+    "ast_hash": "f2d2d2a4755e85c7c9422f70be44c4a0",
+    "semantic_hash": ""
+  },
+  "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/request/RefreshTokenShopRequest.java": {
+    "mtime": 1788378666.9133482,
+    "ast_hash": "93b95fafad0aeaac3ab798cc8f59c72b",
+    "semantic_hash": ""
+  },
+  "src/main/java/com/microsoft/itechwx/identity/adapter/in/web/response/TokenPairResponse.java": {
+    "mtime": 1788186146.954712,
+    "ast_hash": "8193ee757c38a9f4fb112ad798443530",
+    "semantic_hash": ""
+  },
+  "src/main/java/com/microsoft/itechwx/identity/application/contract/result/TokenPairResult.java": {
+    "mtime": 1788186410.724915,
+    "ast_hash": "e5ae42a0a328dc05ef0082e92f5afd74",
+    "semantic_hash": ""
+  },
+  "src/test/java/com/microsoft/itechwx/identity/application/service/ShopRegisterPersistenceTest.java": {
+    "mtime": 1788178281.5681808,
+    "ast_hash": "eb9ed26a488d3fc0f4aeb10d18cd0502",
+    "semantic_hash": ""
+  },
+  "src/test/java/com/microsoft/itechwx/security/ActuatorSecurityTest.java": {
+    "mtime": 1788323631.3447506,
+    "ast_hash": "135f773abaacdf0e66bf01d35acb81df",
+    "semantic_hash": ""
+  },
+  "src/main/resources/application-observability.yaml": {
+    "mtime": 1788323427.1350493,
+    "ast_hash": "5ca43d04381cbc96247c0c6d26fcf166",
+    "semantic_hash": ""
+  },
+  "src/main/java/com/microsoft/itechwx/identity/application/contract/command/HandleRefreshToken.java": {
+    "mtime": 1788378086.7599924,
+    "ast_hash": "277a1a7164d2615e47d1949b9b5e7217",
+    "semantic_hash": ""
+  },
+  "src/main/java/com/microsoft/itechwx/identity/application/exception/InvalidRefreshTokenException.java": {
+    "mtime": 1788378086.7669618,
+    "ast_hash": "143ad12a757767811fe1b9f98421266a",
+    "semantic_hash": ""
+  },
+  "src/main/java/com/microsoft/itechwx/identity/application/exception/RefreshTokenReuseDetectedException.java": {
+    "mtime": 1788378086.767962,
+    "ast_hash": "daf9dcd86ecd117d4f77392fb5a66823",
+    "semantic_hash": ""
+  },
+  "src/test/java/com/microsoft/itechwx/identity/application/service/ShopRefreshTokenWebTest.java": {
+    "mtime": 1788378268.69217,
+    "ast_hash": "1e6f0951dddaedc3ca8c231bd9f835d6",
     "semantic_hash": ""
   }
 }

@@ -40,6 +40,7 @@ does not create a `Shop` aggregate.
 | Build | Gradle Wrapper with Kotlin DSL |
 | Tests | JUnit Platform, AssertJ, Spring test starters, and H2 at test runtime |
 | Migrations | Flyway is declared as a dependency but disabled in the current local configuration |
+| Observability | Spring Boot Actuator with minimal default exposure and authenticated local diagnostics |
 
 `SECURITY.md`, `LIBRARY.md`, and `CODING_STANDARDS.md` still describe Oracle
 Database 23ai as the target database. The executable build and runtime
@@ -147,8 +148,12 @@ Current token behavior:
   has a 30-day lifetime.
 - Only the SHA-256 hash of the refresh token is persisted; the raw token is
   returned in the response.
-- The RSA signing key is currently generated in memory when the application
-  starts.
+- A fresh RSA signing key pair is generated for each token issuance. The public
+  key and `kid` are persisted for verification; the private key is discarded
+  after signing the access token.
+- Refresh tokens are single-use. A successful refresh revokes the presented
+  token and returns a replacement token pair. Reuse of a revoked refresh token
+  deactivates the whole device session and requires a new login.
 
 Example request:
 
@@ -188,23 +193,33 @@ and `username`. Device ID and device name are also generated or hard-coded in
 the use case. These areas must be completed before this endpoint represents a
 complete shop-registration workflow.
 
+Refresh a token pair:
+
+```bash
+curl -i \
+  -X POST http://localhost:8081/api/v1/identity/refreshtoken/shops \
+  -H 'Content-Type: application/json' \
+  -d '{"refreshToken":"<refresh-token>"}'
+```
+
 ## Current security workflow
 
-- Only `POST /api/v1/identity/register/shops` is explicitly public.
+- Registration, login, and refresh endpoints are explicitly public because they
+  establish or renew authentication; each validates its own credentials.
 - Every other request requires authentication according to the current
   `SecurityFilterChain`.
 - Spring Security uses a stateless session policy.
-- Registration is rate-limited by remote client address.
-- The local default is five registration attempts per minute for each client
-  key.
+- Registration, login, and refresh are rate-limited separately by route and
+  remote client address.
+- The local default is five attempts per minute for each route/client key.
 - Exceeding the limit returns `429 Too Many Requests` with a `Retry-After`
   header.
-- The rate limiter and signing keys are both in memory and are not suitable for
-  multi-instance production deployment in their current form.
+- The rate limiter is in memory and is not suitable for multi-instance
+  production deployment in its current form.
 
-JWT issuance exists, but JWT verification, refresh-token rotation,
-logout/session revocation, issuer and audience validation, and role or
-permission claims are not yet complete.
+JWT issuance, database-backed verification, and refresh-token rotation with
+reuse detection are implemented. Logout, issuer and audience validation, and
+role or permission claims are not yet complete.
 
 ## Current persistence workflow
 
@@ -258,6 +273,50 @@ Start the application:
 ```bash
 ./gradlew bootRun
 ```
+
+## Actuator and IntelliJ workflow
+
+The default profile exposes only a minimal public health response and a
+protected info endpoint:
+
+```text
+GET /actuator/health  -> public; status only
+GET /actuator/info    -> bearer token required
+```
+
+For local diagnostics, run the application with the `observability` profile. In an
+IntelliJ Spring Boot run configuration, add this program argument:
+
+```text
+--spring.profiles.active=observability
+```
+
+The observability profile additionally exposes `beans`, `conditions`, `configprops`,
+`mappings`, `metrics`, `scheduledtasks`, and `threaddump`. These endpoints
+still require a valid bearer token, and configuration-property values remain
+hidden. The `env` endpoint is deliberately not exposed.
+
+Open `http/actuator.http` in IntelliJ, paste a local access token into its
+`accessToken` variable, and run requests using the gutter icons. A useful
+debugging path is:
+
+```text
+ItechwxApplication.main
+  -> SecurityConfiguration.applicationSecurity
+  -> RegistrationRateLimitFilter (registration/login only)
+  -> IdentityController
+  -> application use case
+  -> domain model
+  -> persistence/security adapter
+  -> HTTP response
+```
+
+Set breakpoints along that path and start the run configuration with **Debug**.
+Use `/actuator/mappings` to connect URLs to controller methods,
+`/actuator/beans` to see objects created by Spring, and `/actuator/metrics` to
+watch JVM and HTTP measurements. IntelliJ installations with Spring Actuator
+integration can also show the same management data from the running
+application in the Services tool window.
 
 The default address is:
 

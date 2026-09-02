@@ -5,6 +5,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -29,22 +30,22 @@ public class DatabaseJwtDecoder implements JwtDecoder {
     public Jwt decode(String token) throws JwtException {
         SignedJWT unverifiedToken = parse(token);
         if (!JWSAlgorithm.RS256.equals(unverifiedToken.getHeader().getAlgorithm())) {
-            throw new JwtException("Unsupported JWT algorithm");
+            throw new BadJwtException("Unsupported JWT algorithm");
         }
 
         String kid = unverifiedToken.getHeader().getKeyID();
         if (kid == null || kid.isBlank()) {
-            throw new JwtException("JWT kid is required");
+            throw new BadJwtException("JWT kid is required");
         }
 
         PublicKey publicKey;
         try {
             publicKey = signingKeyPort.getPublicKey(kid);
         } catch (RuntimeException exception) {
-            throw new JwtException("JWT signing key is unavailable", exception);
+            throw new BadJwtException("JWT signing key is unavailable", exception);
         }
         if (!(publicKey instanceof RSAPublicKey rsaPublicKey)) {
-            throw new JwtException("JWT signing key must be RSA");
+            throw new BadJwtException("JWT signing key must be RSA");
         }
 
         NimbusJwtDecoder decoder = NimbusJwtDecoder
@@ -54,7 +55,7 @@ public class DatabaseJwtDecoder implements JwtDecoder {
         Jwt jwt = decoder.decode(token);
 
         if (!ACCESS_TOKEN_TYPE.equals(jwt.getClaimAsString("type"))) {
-            throw new JwtException("JWT is not an access token");
+            throw new BadJwtException("JWT is not an access token");
         }
         return jwt;
     }
@@ -63,7 +64,7 @@ public class DatabaseJwtDecoder implements JwtDecoder {
         try {
             return SignedJWT.parse(token);
         } catch (ParseException exception) {
-            throw new JwtException("Malformed JWT", exception);
+            throw new BadJwtException("Malformed JWT", exception);
         }
     }
 }

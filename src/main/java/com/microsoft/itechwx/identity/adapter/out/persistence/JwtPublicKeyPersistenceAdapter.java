@@ -33,6 +33,8 @@ public class JwtPublicKeyPersistenceAdapter implements JwtPublicKeyPort {
 
     @Override
     public Optional<JwtPublicKeyData> findByKid(String kid) {
-        return publicKeyRepository.findById(kid).map(JwtPublicKeyJpaEntity::toData);
+        return publicKeyRepository
+            .findByKidAndDeviceSession_IsActiveTrue(kid)
+            .map(JwtPublicKeyJpaEntity::toData);
     }
 }

@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.microsoft.itechwx.identity.adapter.in.web.request.RegisterShopRequest;
 import com.microsoft.itechwx.identity.adapter.in.web.request.LoginShopRequest;
-import com.microsoft.itechwx.identity.adapter.in.web.response.RegisterShopResponse;
-import com.microsoft.itechwx.identity.adapter.in.web.response.LoginShopResponse;
+import com.microsoft.itechwx.identity.adapter.in.web.request.RefreshTokenShopRequest;
+import com.microsoft.itechwx.identity.adapter.in.web.response.TokenPairResponse;
+import com.microsoft.itechwx.identity.application.contract.command.HandleRefreshToken;
 import com.microsoft.itechwx.identity.application.contract.command.LoginShopCommand;
 import com.microsoft.itechwx.identity.application.contract.command.RegisterShopCommand;
-import com.microsoft.itechwx.identity.application.contract.result.LoginShopResult;
-import com.microsoft.itechwx.identity.application.contract.result.RegisterShopResult;
+import com.microsoft.itechwx.identity.application.contract.result.TokenPairResult;
 import com.microsoft.itechwx.identity.application.port.in.AuthenticationShopUseCase;
 import com.microsoft.itechwx.identity.application.port.in.RegisterShopUseCase;
 
@@ -44,16 +44,15 @@ public class IdentityController {
         path = "/register/shops",
         consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<RegisterShopResponse> registerShop(
+    public ResponseEntity<TokenPairResponse> registerShop(
         @Valid
         @RequestBody 
         RegisterShopRequest request 
     ){
         RegisterShopCommand command = toCommand(request);
+        TokenPairResult result = registerShopUseCase.registerShop(command);
 
-        RegisterShopResult result = registerShopUseCase.registerShop(command);
-
-        RegisterShopResponse response = new RegisterShopResponse(
+        TokenPairResponse response = new TokenPairResponse(
             result.accountId(),
             result.accessToken(),
             result.refreshToken()
@@ -70,11 +69,11 @@ public class IdentityController {
         path = "/login/shops",
         consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<LoginShopResponse> loginShop(
+    public ResponseEntity<TokenPairResponse> loginShop(
         @Valid
         @RequestBody LoginShopRequest request
     ) {
-        LoginShopResult result = authenticationShopUseCase.loginShop(
+        TokenPairResult result = authenticationShopUseCase.loginShop(
             new LoginShopCommand(
                 request.email(),
                 request.password(),
@@ -86,7 +85,29 @@ public class IdentityController {
             .ok()
             .cacheControl(CacheControl.noStore())
             .header(HttpHeaders.PRAGMA, "no-cache")
-            .body(new LoginShopResponse(
+            .body(new TokenPairResponse(
+                result.accountId(),
+                result.accessToken(),
+                result.refreshToken()
+            ));
+    }
+
+    @PostMapping(
+        path = "/refreshtoken/shops",
+        consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<TokenPairResponse> refreshToken(
+        @Valid @RequestBody RefreshTokenShopRequest request
+    ) {
+        TokenPairResult result = authenticationShopUseCase.refreshShopToken(
+            new HandleRefreshToken(request.refreshToken())
+        );
+
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noStore())
+            .header(HttpHeaders.PRAGMA, "no-cache")
+            .body(new TokenPairResponse(
                 result.accountId(),
                 result.accessToken(),
                 result.refreshToken()
@@ -109,4 +130,5 @@ public class IdentityController {
             request.currency()
         );
     }
+
 }

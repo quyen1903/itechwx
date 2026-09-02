@@ -77,10 +77,20 @@ public class RefreshToken {
     }
 
     public void revoke(Instant now) {
-        this.revokedAt = Objects.requireNonNull(now);
+        if (revokedAt == null) {
+            this.revokedAt = Objects.requireNonNull(now);
+        }
     }
 
     public boolean isActive(Instant now) {
         return revokedAt == null && now.isBefore(expiresAt);
+    }
+
+    public boolean wasUsed() {
+        return revokedAt != null;
+    }
+
+    public boolean isExpired(Instant now) {
+        return !now.isBefore(expiresAt);
     }
 }

@@ -65,6 +65,18 @@ public class DeviceSession {
     public void addRefreshToken( RefreshToken token) {
         refreshTokens.add( Objects.requireNonNull(token));
     }
+
+    public boolean isActive() {
+        return Boolean.TRUE.equals(isActive);
+    }
+
+    public void deactivate(Instant now) {
+        Instant deactivatedAt = Objects.requireNonNull(now);
+        this.isActive = false;
+        this.updatedAt = deactivatedAt;
+        this.refreshTokens.forEach(token -> token.revoke(deactivatedAt));
+    }
+
     public static DeviceSession create(
         UUID id,
         AccountAuthentication authentication,

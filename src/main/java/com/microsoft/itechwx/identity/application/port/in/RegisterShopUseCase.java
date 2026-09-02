@@ -1,8 +1,8 @@
 package com.microsoft.itechwx.identity.application.port.in;
 
 import com.microsoft.itechwx.identity.application.contract.command.RegisterShopCommand;
-import com.microsoft.itechwx.identity.application.contract.result.RegisterShopResult;
+import com.microsoft.itechwx.identity.application.contract.result.TokenPairResult;
 
 public interface RegisterShopUseCase {
-    RegisterShopResult registerShop(RegisterShopCommand command);
+    TokenPairResult registerShop(RegisterShopCommand command);
 }

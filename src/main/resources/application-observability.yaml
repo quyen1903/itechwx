@@ -1,0 +1,19 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - beans
+          - conditions
+          - configprops
+          - mappings
+          - metrics
+          - scheduledtasks
+          - threaddump
+  endpoint:
+    health:
+      show-details: when-authorized
+    configprops:
+      show-values: never

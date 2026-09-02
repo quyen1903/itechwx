@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:8081
+@accessToken = paste-a-local-access-token-here
+
+### Minimal public readiness check
+GET {{baseUrl}}/actuator/health
+Accept: application/json
+
+### Discover the endpoints exposed by the active profile
+GET {{baseUrl}}/actuator
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+### See which controller method handles each route (local profile)
+GET {{baseUrl}}/actuator/mappings
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+### Inspect Spring-created beans (local profile)
+GET {{baseUrl}}/actuator/beans
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+### List available metric names (local profile)
+GET {{baseUrl}}/actuator/metrics
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+### Inspect one JVM metric (local profile)
+GET {{baseUrl}}/actuator/metrics/jvm.threads.live
+Accept: application/json
+Authorization: Bearer {{accessToken}}

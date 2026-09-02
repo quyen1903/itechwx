@@ -21,6 +21,9 @@ spring:
   jackson:
     serialization:
       indent-output: true
+  threads:
+    virtual:
+      enabled: true
 itechwx:
   security:
     registration-rate-limit:
@@ -28,3 +31,13 @@ itechwx:
       window: PT1M
 server:
   port: 8081
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+  endpoint:
+    health:
+      show-details: never

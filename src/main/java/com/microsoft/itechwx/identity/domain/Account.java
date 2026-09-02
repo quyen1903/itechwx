@@ -67,7 +67,7 @@ public class Account {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.accountType = Objects.requireNonNull(accountType);
         this.status = AccountStatus.ACTIVE;
-        this.createdAt = Objects.requireNonNull(now);
+        this.createdAt = now;
         this.updatedAt = now;
 
     }
@@ -90,6 +90,5 @@ public class Account {
     public boolean canAuthenticate() {
         return status == AccountStatus.ACTIVE;
     }
-
 
 }

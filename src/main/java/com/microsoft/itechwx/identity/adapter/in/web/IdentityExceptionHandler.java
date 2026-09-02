@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.microsoft.itechwx.identity.adapter.in.web.response.IdentityErrorResponse;
 import com.microsoft.itechwx.identity.application.exception.DuplicateAccountException;
 import com.microsoft.itechwx.identity.application.exception.InvalidCredentialsException;
+import com.microsoft.itechwx.identity.application.exception.InvalidRefreshTokenException;
+import com.microsoft.itechwx.identity.application.exception.RefreshTokenReuseDetectedException;
 
 @RestControllerAdvice(assignableTypes = IdentityController.class)
 public class IdentityExceptionHandler {
@@ -29,6 +31,26 @@ public class IdentityExceptionHandler {
             .body(new IdentityErrorResponse(
                 "ACCOUNT_ALREADY_EXISTS",
                 "Registration conflicts with existing account data"
+            ));
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    ResponseEntity<IdentityErrorResponse> invalidRefreshToken() {
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(new IdentityErrorResponse(
+                "INVALID_REFRESH_TOKEN",
+                "Refresh token is invalid or expired"
+            ));
+    }
+
+    @ExceptionHandler(RefreshTokenReuseDetectedException.class)
+    ResponseEntity<IdentityErrorResponse> refreshTokenReuseDetected() {
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(new IdentityErrorResponse(
+                "REFRESH_TOKEN_REUSED",
+                "Session is no longer valid; sign in again"
             ));
     }
 

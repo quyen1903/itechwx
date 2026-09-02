@@ -7,9 +7,9 @@ import java.time.Instant;
 // import java.util.Locale;
 import java.util.UUID;
 
+import com.microsoft.itechwx.identity.application.contract.result.TokenPairResult;
 import org.springframework.stereotype.Service;
 
-import com.microsoft.itechwx.identity.application.contract.result.RegisterShopResult;
 import com.microsoft.itechwx.identity.application.exception.DuplicateAccountException;
 import com.microsoft.itechwx.identity.application.port.in.RegisterShopUseCase;
 import com.microsoft.itechwx.identity.application.port.out.AccountAuthenticationPort;
@@ -55,19 +55,17 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
     }
 
     @Transactional
-    public RegisterShopResult registerShop(
+    public TokenPairResult registerShop(
         RegisterShopCommand command
     ) {
 
         String email = normalizeEmail(command.email());
-        if (accountAuthenticationPort.existsByEmail(email)) {
-            throw new DuplicateAccountException();
-        }
+        if (accountAuthenticationPort.existsByEmail(email)) throw new DuplicateAccountException();
+
         validatePassword(command.password());
 
         Instant now = clock.instant();
         String passwordHash = passwordHashPort.hash(command.password());
-
 
         // 1. Account
         Account account = Account.registerShop( UUID.randomUUID(),now);
@@ -142,9 +140,8 @@ public class ShopRegister extends AbstractShop implements RegisterShopUseCase {
         // 8. Cascade persist refresh credential
         accountPort.save(managedAccount);
 
-
         // 9. Return raw credentials
-        return new RegisterShopResult(
+        return new TokenPairResult(
             managedAccount.getId(),
             pair.accessToken(),
             pair.refreshToken()
